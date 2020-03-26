@@ -1,0 +1,9 @@
+.qmake.stash
+Makefile
+Project_client.exe
+moc_mainwindow.o
+mainwindow.o
+moc_mainwindow.cpp
+moc_predefs.h
+ui_mainwindow.h
+main.o
