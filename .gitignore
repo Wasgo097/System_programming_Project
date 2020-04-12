@@ -7,3 +7,5 @@ moc_mainwindow.cpp
 moc_predefs.h
 ui_mainwindow.h
 main.o
+Makefile.Debug
+Makefile.Release
