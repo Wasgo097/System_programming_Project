@@ -26,8 +26,12 @@
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
       <widget class="QTabWidget" name="tabWidget">
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(0, 0, 0);</string>
+       </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -39,11 +43,11 @@
            <x>60</x>
            <y>40</y>
            <width>501</width>
-           <height>201</height>
+           <height>161</height>
           </rect>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_3">
           <attribute name="title">
@@ -55,7 +59,7 @@
              <x>0</x>
              <y>0</y>
              <width>491</width>
-             <height>161</height>
+             <height>131</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_2">
@@ -103,7 +107,7 @@
              <x>0</x>
              <y>0</y>
              <width>491</width>
-             <height>161</height>
+             <height>131</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_3">
@@ -147,6 +151,55 @@
         <attribute name="title">
          <string>Program</string>
         </attribute>
+        <widget class="QTextBrowser" name="output">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>40</y>
+           <width>381</width>
+           <height>241</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_5">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>10</y>
+           <width>101</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Output</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="pushButton">
+         <property name="geometry">
+          <rect>
+           <x>440</x>
+           <y>40</y>
+           <width>80</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Pokaz LM</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="geometry">
+          <rect>
+           <x>440</x>
+           <y>80</y>
+           <width>80</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Pokaz U</string>
+         </property>
+        </widget>
        </widget>
       </widget>
      </item>
@@ -159,7 +212,7 @@
      <x>0</x>
      <y>0</y>
      <width>697</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>

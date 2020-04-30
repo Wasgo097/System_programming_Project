@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include <QTcpSocket>
 #include <QString>
+#include <QSettings>
 #include <memory>
 #include <fstream>
 #include <string>
@@ -18,10 +19,14 @@ public:
 private slots:
     void on_btn_login_clicked();
     void on_btn_registration_clicked();
+    void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
+    void read();
 private:
     Ui::MainWindow *ui;
     std::unique_ptr<QTcpSocket> socket;
     bool config_file=false;
+    bool login_status=false;
     string ip;
     string port;
 };
