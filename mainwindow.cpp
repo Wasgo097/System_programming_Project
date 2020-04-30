@@ -1,16 +1,11 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include <QMessageBox>
-#include <QDebug>
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
     std::fstream str;
     str.open("config");
     if(str.good()){
         try {
-            //qDebug()<<"Działa";
             str>>ip>>port;
-            config_file=true;
             //qDebug()<<ip.c_str()<<" "<<port.c_str();
             str.close();
             socket=std::make_unique<QTcpSocket>(this);
@@ -19,7 +14,8 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
             socket->connectToHost(ip_temp,port_temp);
             if(socket->waitForConnected()){
                 //ui->output->append("Polaczono");
-                connect(socket.get(),&QTcpSocket::readyRead,this,&MainWindow::read);
+                //connect(socket.get(),&QTcpSocket::readyRead,this,&MainWindow::read);
+                connected=true;
             }
             else{
                 //ui->output->append("Nie polaczono");
@@ -49,13 +45,13 @@ MainWindow::~MainWindow(){
     delete ui;
 }
 void MainWindow::on_btn_login_clicked(){
-    if(config_file){
+    if(connected){
 
     }
     else{
         QMessageBox msg(this);
         msg.setIcon(QMessageBox::Warning);
-        msg.setText("Nie udało się otworzyć pliku konfiguracyjnego i pobrać z niego danych");
+        msg.setText("Nie udało się otworzyć pliku konfiguracyjnego i pobrać z niego danych lub połączyć do serwera");
         msg.setDetailedText("Skontaktuj się z twórcą oprogramowania");
         msg.setWindowTitle("Błąd pliku konfiguracyjnego");
         msg.setStandardButtons(QMessageBox::Ok);
@@ -63,7 +59,7 @@ void MainWindow::on_btn_login_clicked(){
     }
 }
 void MainWindow::on_btn_registration_clicked(){
-    if(config_file){
+    if(connected){
         if(!login_status){
 
         }
@@ -79,29 +75,41 @@ void MainWindow::on_btn_registration_clicked(){
     else{
         QMessageBox msg(this);
         msg.setIcon(QMessageBox::Warning);
-        msg.setText("Nie udało się otworzyć pliku konfiguracyjnego i pobrać z niego danych");
+        msg.setText("Nie udało się otworzyć pliku konfiguracyjnego i pobrać z niego danych lub połączyć do serwera");
         msg.setDetailedText("Skontaktuj się z twórcą oprogramowania");
         msg.setWindowTitle("Błąd pliku konfiguracyjnego");
         msg.setStandardButtons(QMessageBox::Ok);
         msg.exec();
     }
 }
-void MainWindow::read(){
-    while(socket->canReadLine()){
-        ui->output->append(socket->readLine().trimmed());
+void MainWindow::on_full_archive_clicked(){
+    QString path;
+    bool valid=false;
+    if(ui->hkey_lm->isChecked()){
+        qDebug()<<"Hkey_lm is checked";
+        valid=true;
+        path="HKEY_LOCAL_MACHINE";
+    }
+    if(ui->hkey_u->isChecked()){
+        qDebug()<<"Hkey_lm is checked";
+        valid=true;
+        path="HKEY_USERS";
+    }
+    if(valid){
+        qDebug()<<"Lecimy z "<<path;
+        ui->output->clear();
+        QSettings s("HKEY_USERS",QSettings::NativeFormat);
+        for(auto&var:s.allKeys())
+            ui->output->append(var);
     }
 }
-//lm
-void MainWindow::on_pushButton_clicked(){
-    ui->output->clear();
-    QSettings s("HKEY_LOCAL_MACHINE",QSettings::NativeFormat);
-    for(auto&var:s.allKeys())
-        ui->output->append(var);
-}
-//u
-void MainWindow::on_pushButton_2_clicked(){
-    ui->output->clear();
-    QSettings s("HKEY_USERS",QSettings::NativeFormat);
-    for(auto&var:s.allKeys())
-        ui->output->append(var);
+string MainWindow::get_time_to_send(){
+    string temp("");
+    QDateTime curr=QDateTime::currentDateTime();
+    temp+=std::to_string(curr.date().month());
+    temp+='_'+std::to_string(curr.date().day());
+    temp+='_'+std::to_string(curr.date().year());
+    temp+='_'+std::to_string(curr.time().hour());
+    temp+='_'+std::to_string(curr.time().minute());
+    return temp;
 }
