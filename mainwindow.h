@@ -22,6 +22,9 @@ class MainWindow : public QMainWindow{
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void add_to_output(QString txt){
+        ui->output->append(txt);
+    }
 private slots:
     void on_btn_login_clicked();
     void on_btn_registration_clicked();
@@ -33,11 +36,23 @@ private slots:
         }
     }
     //read during registration process
-    void read_sign_in(){}
+    void read_sign_in(){
+        while(socket->canReadLine()){
+            ui->output->append(socket->readLine().trimmed());
+        }
+    }
     //read during send register process
-    void read_register_save(){}
+    void read_register_save(){
+        while(socket->canReadLine()){
+            ui->output->append(socket->readLine().trimmed());
+        }
+    }
     //read during load register process
-    void read_register_load(){}
+    void read_register_load(){
+        while(socket->canReadLine()){
+            ui->output->append(socket->readLine().trimmed());
+        }
+    }
 private:
     Ui::MainWindow *ui;
     std::mutex socket_mtx;

@@ -1,4 +1,6 @@
 #include "mainwindow.h"
+#include "registry.h"
+#include <time.h>
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
     std::fstream str;
@@ -83,25 +85,36 @@ void MainWindow::on_btn_registration_clicked(){
     }
 }
 void MainWindow::on_full_archive_clicked(){
-    QString path;
-    bool valid=false;
-    if(ui->hkey_lm->isChecked()){
-        qDebug()<<"Hkey_lm is checked";
-        valid=true;
-        path="HKEY_LOCAL_MACHINE";
-    }
-    if(ui->hkey_u->isChecked()){
-        qDebug()<<"Hkey_lm is checked";
-        valid=true;
-        path="HKEY_USERS";
-    }
-    if(valid){
-        qDebug()<<"Lecimy z "<<path;
-        ui->output->clear();
-        QSettings s("HKEY_USERS",QSettings::NativeFormat);
-        for(auto&var:s.allKeys())
-            ui->output->append(var);
-    }
+    srand(time(NULL));
+    qDebug()<<std::rand()%2;
+//    QString path;
+//    bool valid=false;
+//    if(ui->hkey_lm->isChecked()){
+//        qDebug()<<"Hkey_lm is checked";
+//        valid=true;
+//        path="HKEY_LOCAL_MACHINE";
+//    }
+//    if(ui->hkey_u->isChecked()){
+//        qDebug()<<"Hkey_lm is checked";
+//        valid=true;
+//        path="HKEY_USERS";
+//    }
+//    if(valid){
+//        qDebug()<<"Path "<<path;
+//        ui->output->clear();
+//        QSettings s(path,QSettings::NativeFormat);
+//        int i=0;
+//        for(auto&var:s.allKeys()){
+//            ui->output->append(var);
+//            qDebug()<<i++;
+//        }
+//    }
+
+//    Registry reg(this);
+//    BOOL flags[2];
+//    flags[0]=1;
+//    flags[1]=0;
+//    reg.TraverseRegistry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
 }
 string MainWindow::get_time_to_send(){
     string temp("");

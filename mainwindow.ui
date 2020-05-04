@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
@@ -31,7 +34,7 @@
 color: rgb(0, 0, 0);</string>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -43,11 +46,11 @@ color: rgb(0, 0, 0);</string>
            <x>60</x>
            <y>40</y>
            <width>501</width>
-           <height>161</height>
+           <height>171</height>
           </rect>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_3">
           <attribute name="title">
@@ -59,7 +62,7 @@ color: rgb(0, 0, 0);</string>
              <x>0</x>
              <y>0</y>
              <width>491</width>
-             <height>131</height>
+             <height>141</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_2">
@@ -87,6 +90,9 @@ color: rgb(0, 0, 0);</string>
               </item>
               <item>
                <widget class="QPushButton" name="btn_login">
+                <property name="styleSheet">
+                 <string notr="true"/>
+                </property>
                 <property name="text">
                  <string>Loguj</string>
                 </property>
@@ -107,7 +113,7 @@ color: rgb(0, 0, 0);</string>
              <x>0</x>
              <y>0</y>
              <width>491</width>
-             <height>131</height>
+             <height>141</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_3">
