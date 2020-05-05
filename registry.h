@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <fstream>
+#include <sstream>
 #include "mainwindow.h"
 #define TSIZE sizeof (TCHAR)
 class Registry{
@@ -99,34 +100,40 @@ public:
 private:
     BOOL DisplayPair(LPTSTR valueName, DWORD valueType,	LPBYTE value, DWORD valueLen){
         LPBYTE pV = value;
-        DWORD i;
-        //_tprintf(_T("\n%s = "), valueName);
-        TCHAR valname[MAX_PATH + 1];
-        char valname2[MAX_PATH+1];
-        swprintf(valname,L"value name = %s",valueName);
-        sprintf_s(valname2,"value name = %s",valueName);
+        unsigned long i;
         int size=wcslen(valueName);
+        string name="";
         for(int i=0;i<=size;i++)
-            qDebug()<<(char)valueName[i];
-        QString temp=QString::fromWCharArray(valname);
-        QString temp2=QString::fromLocal8Bit(valname2);
-        str<<temp2.toStdString()<<std::endl;
-        //qDebug()<<*valueName;
+            name+=(char)valueName[i];
+        str<<name<<":"<<std::endl;
+        string valuee="val : ";
+        std::stringstream sstream;
         switch (valueType) {
         case REG_FULL_RESOURCE_DESCRIPTOR: /* 9: Resource list in the hardware description */
         case REG_BINARY: /*  3: Binary data in any form. */
             //window->add_to_output("binary");
             //qDebug()<<"binary";
-            str<<"binary"<<std::endl;
-            //for (i = 0; i < valueLen; i++, pV++)
-                //_tprintf(_T(" %x"), *pV);
-                //qDebug()<<*pV;
+            str<<"bin "<<std::endl;
+            for (i = 0; i < valueLen; i++, pV++){
+//                sprintf(temp,"%x",*pV);
+//                size=strlen(temp);
+//                for(j=0;j<size;j++)
+//                    valuee+=temp[i];
+                //str<<std::hex<<(unsigned int)*pV<<" ";
+                sstream<<std::hex<<(unsigned int)*pV<<" ";
+            }
+            sstream<<std::endl;
+            valuee+=sstream.str();
+            str<<valuee;
+            //str<<valuee<<std::endl;
+            //_tprintf(_T(" %x"), *pV);
+            //qDebug()<<*pV;
             break;
         case REG_DWORD: /* 4: A 32-bit number. */
             //_tprintf(_T("%x"), (DWORD)*value);
             //window->add_to_output("dword");
             //qDebug()<<"dword";
-            str<<"dword"<<std::endl;
+            str<<"dword "<<std::endl;
             break;
         case REG_EXPAND_SZ: /* 2: null-terminated string with unexpanded references to environment variables (for example, “%PATH%”). */
         case REG_MULTI_SZ: /* 7: An array of null-terminated strings, terminated by two null characters. */
@@ -134,7 +141,7 @@ private:
             //_tprintf(_T("%s"), (LPTSTR)value);
             //window->add_to_output("sz");
             //qDebug()<<"str";
-            str<<"str"<<std::endl;
+            str<<"str "<<std::endl;
             break;
         case REG_DWORD_BIG_ENDIAN: /* 5:  A 32-bit number in big-endian format. */
         case REG_LINK: /* 6: A Unicode symbolic link. */
