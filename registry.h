@@ -3,13 +3,21 @@
 #include <QMessageBox>
 #include <windows.h>
 #include <tchar.h>
+#include <fstream>
 #include "mainwindow.h"
 #define TSIZE sizeof (TCHAR)
 class Registry{
     MainWindow * window;
+    std::fstream str;
 public:
     Registry(MainWindow* window){
         this->window=window;
+        str.open("logs.txt",std::fstream::in | std::fstream::out | std::fstream::app);
+        if(str.good())
+            qDebug()<<"good";
+    }
+    ~Registry(){
+        str.close();
     }
     BOOL TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
         HKEY hSubKey;
@@ -61,8 +69,8 @@ public:
             valueNameLen = maxValueNameLen + 1; /* A very common bug is to forget to set */
             valueLen = maxValueLen + 1;     /* these values; both are in/out params  */
             result = RegEnumValue(hSubKey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
-            if (result == ERROR_SUCCESS && GetLastError() == 0)
-                DisplayPair(valueName, valueType, value, valueLen);
+            //if (result == ERROR_SUCCESS && GetLastError() == 0)
+            DisplayPair(valueName, valueType, value, valueLen);
             /*  If you wanted to change a value, this would be the place to do it.
                     RegSetValueEx(hSubKey, valueName, 0, valueType, pNewValue, NewValueSize); */
         }
@@ -71,16 +79,15 @@ public:
             subKeyNameLen = maxSubKeyLen + 1;
             result = RegEnumKeyEx(hSubKey, index, subKeyName, &subKeyNameLen, NULL,
                 NULL, NULL, &lastWriteTime);
-            if (GetLastError() == 0) {
+            //if (GetLastError() == 0) {
                 DisplaySubKey(fullKeyName, subKeyName, &lastWriteTime, flags);
                 /*  Display subkey components if -R is specified */
                 if (recursive) {
                     //_stprintf(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
                     swprintf_s(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
-                    //
                     TraverseRegistry(hSubKey, fullSubKeyName, subKeyName, flags);
                 }
-            }
+            //}
         }
         //_tprintf(_T("\n"));
         free(subKeyName);
@@ -94,22 +101,31 @@ private:
         LPBYTE pV = value;
         DWORD i;
         //_tprintf(_T("\n%s = "), valueName);
+        str<<"val name "<<*valueName<<" ; "<<valueName<<std::endl;
+        //qDebug()<<*valueName;
         switch (valueType) {
         case REG_FULL_RESOURCE_DESCRIPTOR: /* 9: Resource list in the hardware description */
         case REG_BINARY: /*  3: Binary data in any form. */
-           // for (i = 0; i < valueLen; i++, pV++)
-                window->add_to_output("binary");
+            //window->add_to_output("binary");
+            //qDebug()<<"binary";
+            str<<"binary"<<std::endl;
+            //for (i = 0; i < valueLen; i++, pV++)
                 //_tprintf(_T(" %x"), *pV);
+                //qDebug()<<*pV;
             break;
         case REG_DWORD: /* 4: A 32-bit number. */
             //_tprintf(_T("%x"), (DWORD)*value);
-            window->add_to_output("dword");
+            //window->add_to_output("dword");
+            //qDebug()<<"dword";
+            str<<"dword"<<std::endl;
             break;
         case REG_EXPAND_SZ: /* 2: null-terminated string with unexpanded references to environment variables (for example, “%PATH%”). */
         case REG_MULTI_SZ: /* 7: An array of null-terminated strings, terminated by two null characters. */
         case REG_SZ: /* 1: A null-terminated string. */
             //_tprintf(_T("%s"), (LPTSTR)value);
-            window->add_to_output("sz");
+            //window->add_to_output("sz");
+            //qDebug()<<"str";
+            str<<"str"<<std::endl;
             break;
         case REG_DWORD_BIG_ENDIAN: /* 5:  A 32-bit number in big-endian format. */
         case REG_LINK: /* 6: A Unicode symbolic link. */
@@ -122,7 +138,7 @@ private:
     }
     BOOL DisplaySubKey(LPTSTR keyName, LPTSTR subKeyName, PFILETIME pLastWrite, LPBOOL flags)    {
         BOOL longList = flags[1];
-        SYSTEMTIME sysLastWrite;
+        //SYSTEMTIME sysLastWrite;
         QString temp=QString::fromWCharArray(keyName);
         //_tprintf(_T("\n%s"), keyName);
         if (_tcslen(subKeyName) > 0){
@@ -130,8 +146,14 @@ private:
             temp+=QString::fromWCharArray(subKeyName);
             //_tprintf(_T("\\%s "), subKeyName);
         }
-        //
-        window->add_to_output(temp);
+        if(temp=="HKEY_USERS\\S-1-5-21-2315024851-3994538975-640974175-1001\\Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib\\009")
+        {
+            //
+            qDebug()<<"chuje "+ temp;
+        }
+        //qDebug()<<temp;
+        str<<temp.toStdString()<<std::endl;
+        //window->add_to_output(temp);
         if (longList) {
 //            FileTimeToSystemTime(pLastWrite, &sysLastWrite);
 //            _tprintf(_T("        %02d/%02d/%04d %02d:%02d:%02d"),

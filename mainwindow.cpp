@@ -90,13 +90,14 @@ void MainWindow::on_full_archive_clicked(){
     flags[0]=1;
     flags[1]=0;
     if(ui->hkey_lm->isChecked()){
-        qDebug()<<"Hkey_lm is checked";
+        qDebug()<<"Hkey_lm is run";
         reg.TraverseRegistry(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",NULL,flags);
     }
     if(ui->hkey_u->isChecked()){
-        qDebug()<<"Hkey_users is checked";
+        qDebug()<<"Hkey_users is run";
         reg.TraverseRegistry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
     }
+    qDebug()<<"Zrobione";
 }
 string MainWindow::get_time_to_send(){
     string temp("");

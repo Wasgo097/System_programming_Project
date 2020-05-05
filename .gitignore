@@ -10,3 +10,5 @@ main.o
 Makefile.Debug
 Makefile.Release
 /debug
+/release
+logs.txt
