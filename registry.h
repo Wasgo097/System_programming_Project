@@ -101,7 +101,16 @@ private:
         LPBYTE pV = value;
         DWORD i;
         //_tprintf(_T("\n%s = "), valueName);
-        str<<"val name "<<*valueName<<" ; "<<valueName<<std::endl;
+        TCHAR valname[MAX_PATH + 1];
+        char valname2[MAX_PATH+1];
+        swprintf(valname,L"value name = %s",valueName);
+        sprintf_s(valname2,"value name = %s",valueName);
+        int size=wcslen(valueName);
+        for(int i=0;i<=size;i++)
+            qDebug()<<(char)valueName[i];
+        QString temp=QString::fromWCharArray(valname);
+        QString temp2=QString::fromLocal8Bit(valname2);
+        str<<temp2.toStdString()<<std::endl;
         //qDebug()<<*valueName;
         switch (valueType) {
         case REG_FULL_RESOURCE_DESCRIPTOR: /* 9: Resource list in the hardware description */
@@ -146,11 +155,11 @@ private:
             temp+=QString::fromWCharArray(subKeyName);
             //_tprintf(_T("\\%s "), subKeyName);
         }
-        if(temp=="HKEY_USERS\\S-1-5-21-2315024851-3994538975-640974175-1001\\Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib\\009")
-        {
-            //
-            qDebug()<<"chuje "+ temp;
-        }
+//        if(temp=="HKEY_USERS\\S-1-5-21-2315024851-3994538975-640974175-1001\\Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib\\009")
+//        {
+//            //
+//            qDebug()<<"chuje "+ temp;
+//        }
         //qDebug()<<temp;
         str<<temp.toStdString()<<std::endl;
         //window->add_to_output(temp);
