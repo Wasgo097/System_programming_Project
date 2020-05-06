@@ -5,22 +5,31 @@
 #include <tchar.h>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "mainwindow.h"
 #define TSIZE sizeof (TCHAR)
 class Registry{
     MainWindow * window;
     std::fstream str;
+    std::vector<const wchar_t *> exception;
 public:
     Registry(MainWindow* window){
         this->window=window;
         str.open("logs.txt",std::fstream::in | std::fstream::out | std::fstream::app);
         if(str.good())
             qDebug()<<"good";
+        //exception.push_back(L"HKEY_USERS\\S-1-5-21-2315024851-3994538975-640974175-1001\\Software\\Classes\\VirtualStore");
     }
     ~Registry(){
         str.close();
     }
     BOOL TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
+        //if(fullKeyName==L"HKEY_USERS\\S-1-5-21-2315024851-3994538975-640974175-1001\\Software\\Classes\\VirtualStore"){
+        //int size=wcslen(L"HKEY_USERS\\S-1-5-21-2315024851-3994538975-640974175-1001\\Software\\Classes\\VirtualStore");
+        if(is_exception(fullKeyName)){
+            qDebug()<<"Jestem tutaj";
+            return true;
+        }
         HKEY hSubKey;
         BOOL recursive = flags[0];
         LONG result;
@@ -71,23 +80,22 @@ public:
             valueLen = maxValueLen + 1;     /* these values; both are in/out params  */
             result = RegEnumValue(hSubKey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
             //if (result == ERROR_SUCCESS && GetLastError() == 0)
-            DisplayPair(valueName, valueType, value, valueLen);
+            WriteValue(valueName, valueType, value, valueLen);
             /*  If you wanted to change a value, this would be the place to do it.
-                    RegSetValueEx(hSubKey, valueName, 0, valueType, pNewValue, NewValueSize); */
+                RegSetValueEx(hSubKey, valueName, 0, valueType, pNewValue, NewValueSize); */
         }
         //Second pass for subkeys
         for (index = 0; index < numSubKeys; index++) {
             subKeyNameLen = maxSubKeyLen + 1;
-            result = RegEnumKeyEx(hSubKey, index, subKeyName, &subKeyNameLen, NULL,
-                NULL, NULL, &lastWriteTime);
+            result = RegEnumKeyEx(hSubKey, index, subKeyName, &subKeyNameLen, NULL,NULL, NULL, &lastWriteTime);
             //if (GetLastError() == 0) {
-                DisplaySubKey(fullKeyName, subKeyName, &lastWriteTime, flags);
-                /*  Display subkey components if -R is specified */
-                if (recursive) {
-                    //_stprintf(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
-                    swprintf_s(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
-                    TraverseRegistry(hSubKey, fullSubKeyName, subKeyName, flags);
-                }
+            WriteSubKey(fullKeyName, subKeyName, &lastWriteTime, flags);
+            /*  Display subkey components if -R is specified */
+            if (recursive) {
+                //_stprintf(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
+                swprintf_s(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
+                TraverseRegistry(hSubKey, fullSubKeyName, subKeyName, flags);
+            }
             //}
         }
         //_tprintf(_T("\n"));
@@ -98,13 +106,19 @@ public:
         return TRUE;
     }
 private:
-    BOOL DisplayPair(LPTSTR valueName, DWORD valueType,	LPBYTE value, DWORD valueLen){
+    BOOL WriteValue(LPTSTR valueName, DWORD valueType,	LPBYTE value, DWORD valueLen){
         LPBYTE pV = value;
+        //QString temp=QString::fromWCharArray(key);
         unsigned long i;
         int size=wcslen(valueName);
         string name="";
-        for(int i=0;i<=size;i++)
+        for(int i=0;i<size;i++)
             name+=(char)valueName[i];
+        if(name==""){
+            str<<" exc "<<std::endl;
+            return false;
+        }
+        //str<<temp.toStdString()<<std::endl;
         str<<name<<":"<<std::endl;
         string valuee="val : ";
         std::stringstream sstream;
@@ -152,7 +166,7 @@ private:
         }
         return TRUE;
     }
-    BOOL DisplaySubKey(LPTSTR keyName, LPTSTR subKeyName, PFILETIME pLastWrite, LPBOOL flags)    {
+    BOOL WriteSubKey(LPTSTR keyName, LPTSTR subKeyName, PFILETIME pLastWrite, LPBOOL flags)    {
         BOOL longList = flags[1];
         //SYSTEMTIME sysLastWrite;
         QString temp=QString::fromWCharArray(keyName);
@@ -165,7 +179,7 @@ private:
 //        if(temp=="HKEY_USERS\\S-1-5-21-2315024851-3994538975-640974175-1001\\Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Perflib\\009")
 //        {
 //            //
-//            qDebug()<<"chuje "+ temp;
+//            qDebug()<<"proba "+ temp;
 //        }
         //qDebug()<<temp;
         str<<temp.toStdString()<<std::endl;
@@ -178,6 +192,24 @@ private:
 //                sysLastWrite.wMinute, sysLastWrite.wSecond);
         }
         return TRUE;
+    }
+    bool is_exception(const wchar_t * str){
+        for(const auto &x:exception){
+            int sizex=wcslen(x);
+            int sizestr=wcslen(str);
+            if(sizex==sizestr){
+                bool flag=true;
+                for(int i=0;i<sizex;i++){
+                    if(x[i]!=str[i]){
+                        flag=false;
+                        break;
+                    }
+                }
+                if(flag==true)
+                    return true;
+            }
+        }
+        return false;
     }
 };
 
