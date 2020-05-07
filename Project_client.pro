@@ -15,7 +15,7 @@ SOURCES += \
     mainwindow.cpp
 HEADERS += \
     mainwindow.h \
-    registry.h
+    qregistry.h
 FORMS += \
     mainwindow.ui
 # Default rules for deployment.

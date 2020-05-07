@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "registry.h"
+#include "qregistry.h"
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
     std::fstream str;
@@ -85,7 +85,7 @@ void MainWindow::on_btn_registration_clicked(){
 }
 void MainWindow::on_full_archive_clicked(){
     ui->output->clear();
-    Registry reg(this);
+    QRegistry reg(this);
     BOOL flags[2];
     flags[0]=1;
     flags[1]=0;

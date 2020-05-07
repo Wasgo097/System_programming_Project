@@ -1,5 +1,5 @@
-#ifndef REGISTRY_H
-#define REGISTRY_H
+#ifndef QREGISTRY_H
+#define QREGISTRY_H
 #include <QMessageBox>
 #include <windows.h>
 #include <tchar.h>
@@ -8,26 +8,26 @@
 #include <vector>
 #include "mainwindow.h"
 #define TSIZE sizeof (TCHAR)
-class Registry{
+class QRegistry{
     MainWindow * window;
     std::fstream str;
     std::vector<const wchar_t *> exception;
 public:
-    Registry(MainWindow* window){
+    QRegistry(MainWindow* window){
         this->window=window;
         str.open("logs.txt",std::fstream::in | std::fstream::out | std::fstream::app);
         if(str.good())
             qDebug()<<"good";
-        exception.push_back(L"HKEY_USERS\\.DEFAULT\\Control Panel\\Desktop\\No");
+        //exception.push_back(L"HKEY_USERS\\.DEFAULT\\Control Panel\\Desktop\\");
     }
-    ~Registry(){
+    ~QRegistry(){
         str.close();
     }
     BOOL TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
-        if(is_exception(fullKeyName)){
-            qDebug()<<"Jestem tutaj";
-            return true;
-        }
+//        if(is_exception(fullKeyName)){
+//            qDebug()<<"Jestem tutaj";
+//            return true;
+//        }
         HKEY hSubKey;
         BOOL recursive = flags[0];
         DWORD valueType, index;
@@ -104,6 +104,21 @@ private:
         LPBYTE pV = value;
         QString qtemp=QString::fromWCharArray(fullKeyName);
         string stemp=qtemp.toStdString();
+        auto remove_useless_part_from_string=[](string src)->string{
+            string tmp=src;
+            int last_slash=0;
+            for(int i=0;i<tmp.length();i++){
+                if(tmp[i]=='\\'){
+                     last_slash=i;
+                     continue;
+                }
+                if((int)tmp[i]<0||(int)tmp[i]>255)
+                    break;
+            }
+            tmp.erase(tmp.begin()+last_slash-1,tmp.end());
+            return tmp;
+        };
+        stemp=remove_useless_part_from_string(stemp);
         unsigned long i;
         int namesize=wcslen(valueName);
         if(namesize==0){
@@ -169,9 +184,9 @@ private:
         return TRUE;
     }
     bool is_exception(const wchar_t * str){
+        int sizestr=wcslen(str);
         for(const auto &x:exception){
             int sizex=wcslen(x);
-            int sizestr=wcslen(str);
             if(sizex==sizestr){
                 bool flag=true;
                 for(int i=0;i<sizex;i++){
@@ -187,5 +202,4 @@ private:
         return false;
     }
 };
-
-#endif // REGISTRY_H
+#endif // QREGISTRY_H
