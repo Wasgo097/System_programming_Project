@@ -78,9 +78,10 @@ public:
         for (index = 0; index < numValues; index++) {
             valueNameLen = maxValueNameLen + 1; /* A very common bug is to forget to set */
             valueLen = maxValueLen + 1;     /* these values; both are in/out params  */
+            swprintf_s(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
             result = RegEnumValue(hSubKey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
             //if (result == ERROR_SUCCESS && GetLastError() == 0)
-            WriteValue(valueName, valueType, value, valueLen);
+            WriteValue(valueName, valueType, value, valueLen,fullSubKeyName);
             /*  If you wanted to change a value, this would be the place to do it.
                 RegSetValueEx(hSubKey, valueName, 0, valueType, pNewValue, NewValueSize); */
         }
@@ -106,19 +107,21 @@ public:
         return TRUE;
     }
 private:
-    BOOL WriteValue(LPTSTR valueName, DWORD valueType,	LPBYTE value, DWORD valueLen){
+    BOOL WriteValue(LPTSTR valueName, DWORD valueType,	LPBYTE value, DWORD valueLen,LPTSTR fullKeyName){
         LPBYTE pV = value;
-        //QString temp=QString::fromWCharArray(key);
+        QString temp=QString::fromWCharArray(fullKeyName);
+        string tempp=temp.toStdString();
         unsigned long i;
         int size=wcslen(valueName);
+        if(size==0){
+            str<<"exc"<<std::endl;
+            return false;
+        }
         string name="";
         for(int i=0;i<size;i++)
             name+=(char)valueName[i];
-        if(name==""){
-            str<<" exc "<<std::endl;
-            return false;
-        }
         //str<<temp.toStdString()<<std::endl;
+        str<<tempp<<std::endl;
         str<<name<<":"<<std::endl;
         string valuee="val : ";
         std::stringstream sstream;
@@ -133,7 +136,7 @@ private:
 //                size=strlen(temp);
 //                for(j=0;j<size;j++)
 //                    valuee+=temp[i];
-                //str<<std::hex<<(unsigned int)*pV<<" ";
+//                  str<<std::hex<<(unsigned int)*pV<<" ";
                 sstream<<std::hex<<(unsigned int)*pV<<" ";
             }
             sstream<<std::endl;
@@ -182,7 +185,7 @@ private:
 //            qDebug()<<"proba "+ temp;
 //        }
         //qDebug()<<temp;
-        str<<temp.toStdString()<<std::endl;
+        //str<<temp.toStdString()<<std::endl;
         //window->add_to_output(temp);
         if (longList) {
 //            FileTimeToSystemTime(pLastWrite, &sysLastWrite);
