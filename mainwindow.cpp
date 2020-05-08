@@ -45,6 +45,9 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 MainWindow::~MainWindow(){
     delete ui;
 }
+void MainWindow::add_to_output(QString txt){
+    ui->output->append(txt);
+}
 void MainWindow::on_btn_login_clicked(){
     if(connected){
 
@@ -98,6 +101,26 @@ void MainWindow::on_full_archive_clicked(){
         reg.TraverseRegistry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
     }
     qDebug()<<"Zrobione";
+}
+void MainWindow::read_log_in(){
+    while(socket->canReadLine()){
+        ui->output->append(socket->readLine().trimmed());
+    }
+}
+void MainWindow::read_sign_in(){
+    while(socket->canReadLine()){
+        ui->output->append(socket->readLine().trimmed());
+    }
+}
+void MainWindow::read_register_save(){
+    while(socket->canReadLine()){
+        ui->output->append(socket->readLine().trimmed());
+    }
+}
+void MainWindow::read_register_load(){
+    while(socket->canReadLine()){
+        ui->output->append(socket->readLine().trimmed());
+    }
 }
 string MainWindow::get_time_to_send(){
     string temp("");

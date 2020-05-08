@@ -12,10 +12,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    qregistry.cpp \
+    regfield.cpp
 HEADERS += \
     mainwindow.h \
-    qregistry.h
+    qregistry.h \
+    regfield.h
 FORMS += \
     mainwindow.ui
 # Default rules for deployment.

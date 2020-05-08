@@ -3,15 +3,14 @@
 #include <QMainWindow>
 #include <QTcpSocket>
 #include <QString>
-#include <QSettings>
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
-#include <memory>
-#include <fstream>
-#include <string>
-#include <thread>
+//#include <QSettings>
 #include <mutex>
+#include <thread>
+#include <memory>
+#include <string>
 #include "ui_mainwindow.h"
 typedef  std::string string;
 QT_BEGIN_NAMESPACE
@@ -22,37 +21,19 @@ class MainWindow : public QMainWindow{
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void add_to_output(QString txt){
-        ui->output->append(txt);
-    }
+    void add_to_output(QString txt);
 private slots:
     void on_btn_login_clicked();
     void on_btn_registration_clicked();
     void on_full_archive_clicked();
     //read during login process
-    void read_log_in(){
-        while(socket->canReadLine()){
-            ui->output->append(socket->readLine().trimmed());
-        }
-    }
+    void read_log_in();
     //read during registration process
-    void read_sign_in(){
-        while(socket->canReadLine()){
-            ui->output->append(socket->readLine().trimmed());
-        }
-    }
+    void read_sign_in();
     //read during send register process
-    void read_register_save(){
-        while(socket->canReadLine()){
-            ui->output->append(socket->readLine().trimmed());
-        }
-    }
+    void read_register_save();
     //read during load register process
-    void read_register_load(){
-        while(socket->canReadLine()){
-            ui->output->append(socket->readLine().trimmed());
-        }
-    }
+    void read_register_load();
 private:
     Ui::MainWindow *ui;
     std::mutex socket_mtx;
