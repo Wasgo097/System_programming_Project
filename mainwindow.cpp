@@ -88,17 +88,27 @@ void MainWindow::on_btn_registration_clicked(){
 }
 void MainWindow::on_full_archive_clicked(){
     ui->output->clear();
-    QRegistry reg(this);
+    QRegistry reg(this,false);
     BOOL flags[2];
     flags[0]=1;
     flags[1]=0;
+    std::fstream str;
+    str.open("logs2.txt",std::fstream::in | std::fstream::out | std::fstream::app);
     if(ui->hkey_lm->isChecked()){
         qDebug()<<"Hkey_lm is run";
-        reg.TraverseRegistry(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",NULL,flags);
+        //reg.TraverseRegistry(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",NULL,flags);
+        std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp=reg.get_full_registry(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",NULL,flags);
+        for(const auto &x:*temp){
+            str<<*x;
+        }
     }
     if(ui->hkey_u->isChecked()){
         qDebug()<<"Hkey_users is run";
-        reg.TraverseRegistry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
+        //reg.TraverseRegistry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
+        std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp=reg.get_full_registry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
+        for(const auto &x:*temp){
+            str<<*x;
+        }
     }
     qDebug()<<"Zrobione";
 }

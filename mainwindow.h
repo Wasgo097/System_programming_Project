@@ -8,6 +8,7 @@
 #include <QDateTime>
 //#include <QSettings>
 #include <mutex>
+#include <fstream>
 #include <thread>
 #include <memory>
 #include <string>

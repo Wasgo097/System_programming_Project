@@ -12,3 +12,4 @@ Makefile.Release
 /debug
 /release
 logs.txt
+logs2.txt

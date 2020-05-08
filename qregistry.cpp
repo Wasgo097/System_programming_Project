@@ -1,10 +1,13 @@
 #include "qregistry.h"
 #include "mainwindow.h"
-QRegistry::QRegistry(MainWindow *window){
+QRegistry::QRegistry(MainWindow *window,bool log){
+    log_on=log;
     this->window=window;
-    str.open("logs.txt",std::fstream::in | std::fstream::out | std::fstream::app);
-    if(str.good())
-        qDebug()<<"good";
+    if(log_on){
+        str.open("logs.txt",std::fstream::in | std::fstream::out | std::fstream::app);
+        if(str.good())
+            qDebug()<<"good";
+    }
     //exception.push_back(L"HKEY_USERS\\.DEFAULT\\Control Panel\\Desktop\\");
 }
 QRegistry::~QRegistry(){
@@ -39,6 +42,7 @@ BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, L
 //      msg.setWindowTitle("Błąd dostępu do rejestru");
 //      msg.setStandardButtons(QMessageBox::Ok);
 //      msg.exec();
+        if(log_on)
         str<<"exc3 cannot open key"<<std::endl;
         return false;
     }
@@ -51,8 +55,9 @@ BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, L
 //      msg.setWindowTitle("Błąd dostępu do rejestru");
 //      msg.setStandardButtons(QMessageBox::Ok);
 //      msg.exec();
+        if(log_on)
         str<<"exc4 search info about key"<<std::endl;
-        return 0;
+        return false;
     }
     subKeyName =(LPTSTR) malloc(TSIZE * (maxSubKeyLen + 1));   /* size in bytes */
     valueName =(LPTSTR) malloc(TSIZE * (maxValueNameLen + 1));
@@ -60,10 +65,10 @@ BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, L
     /*First pass for key-value pairs.
         Important assumption: No one edits the registry under this subkey
         during this loop. Doing so could change add new values */
+    swprintf_s(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
     for (index = 0; index < numValues; index++) {
         valueNameLen = maxValueNameLen + 1; /* A very common bug is to forget to set */
         valueLen = maxValueLen + 1;     /* these values; both are in/out params  */
-        swprintf_s(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
         RegEnumValue(hSubKey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
         WriteValue(valueName, valueType, value, valueLen,fullSubKeyName);
         /*  If you wanted to change a value, this would be the place to do it.
@@ -108,34 +113,50 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
     unsigned long i;
     int namesize=wcslen(valueName);
     if(namesize==0){
-        str<<"exc1 value without name"<<std::endl;
+        if(log_on)
+            str<<"exc1 value without name"<<std::endl;
         return false;
     }
     string name="";
     for(int i=0;i<namesize;i++)
         name+=(char)valueName[i];
     //str<<temp.toStdString()<<std::endl;
-    str<<stemp<<std::endl;
-    str<<name<<":"<<std::endl;
+    std::shared_ptr<RegField> row(new RegField);
+    row->key(stemp);
+    if(log_on)
+        str<<stemp<<std::endl;
+    row->value_name(name);
+    if(log_on)
+        str<<name<<":"<<std::endl;
     string svalue="val : ";
     std::stringstream sstream;
     switch (valueType) {
     case REG_FULL_RESOURCE_DESCRIPTOR: /* 9: Resource list in the hardware description */
     case REG_BINARY: /*  3: Binary data in any form. */
-        str<<"bin "<<std::endl;
+        if(log_on)
+            str<<"bin "<<std::endl;
         for (i = 0; i < valueLen; i++, pV++){
             sstream<<std::hex<<(unsigned int)*pV<<" ";
         }
         svalue+=sstream.str();
-        str<<svalue<<std::endl;
+        if(log_on)
+            str<<svalue<<std::endl;
+        row->type(1);
+        row->value(svalue.erase(0,6));
+        full_registry->push_back(row);
         break;
     case REG_DWORD: /* 4: A 32-bit number. */
         //_tprintf(_T("%x"), (DWORD)*value);
         //window->add_to_output("dword");
         //qDebug()<<"dword";
-        str<<"dword "<<std::endl;
+        if(log_on)
+            str<<"dword "<<std::endl;
         stemp=std::to_string((DWORD)*value);
-        str<<stemp<<std::endl<<std::endl;
+        if(log_on)
+            str<<stemp<<std::endl<<std::endl;
+        row->type(3);
+        row->value(svalue.erase(0,6));
+        full_registry->push_back(row);
         break;
     case REG_EXPAND_SZ: /* 2: null-terminated string with unexpanded references to environment variables (for example, “%PATH%”). */
     case REG_MULTI_SZ: /* 7: An array of null-terminated strings, terminated by two null characters. */
@@ -143,17 +164,23 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         //_tprintf(_T("%s"), (LPTSTR)value);
         //window->add_to_output("sz");
         //qDebug()<<"str";
-        str<<"str "<<std::endl;
+        if(log_on)
+            str<<"str "<<std::endl;
         qtemp=QString::fromWCharArray((LPTSTR)value);
         stemp=qtemp.toStdString();
-        str<<stemp<<std::endl;
+        if(log_on)
+            str<<stemp<<std::endl;
+        row->type(2);
+        row->value(svalue.erase(0,6));
+        full_registry->push_back(row);
         break;
     case REG_DWORD_BIG_ENDIAN: /* 5:  A 32-bit number in big-endian format. */
     case REG_LINK: /* 6: A Unicode symbolic link. */
     case REG_NONE: /* 0: No defined value type. */
     case REG_RESOURCE_LIST: /* 8: A device-driver resource list. */
     default: //_tprintf(_T(" ** Cannot display value of type: %d. Exercise for reader\n"), valueType);
-        str<<"exc2 unknow type of value"<<std::endl;
+        if(log_on)
+            str<<"exc2 unknow type of value"<<std::endl;
         return false;
     }
     return TRUE;
@@ -169,21 +196,21 @@ WINBOOL QRegistry::WriteSubKey(LPTSTR keyName, LPTSTR subKeyName){
     //window->add_to_output(temp);
     return TRUE;
 }
-bool QRegistry::is_exception(const wchar_t *str){
-    int sizestr=wcslen(str);
-    for(const auto &x:exception){
-        int sizex=wcslen(x);
-        if(sizex==sizestr){
-            bool flag=true;
-            for(int i=0;i<sizex;i++){
-                if(x[i]!=str[i]){
-                    flag=false;
-                    break;
-                }
-            }
-            if(flag==true)
-                return true;
-        }
-    }
-    return false;
-}
+//bool QRegistry::is_exception(const wchar_t *str){
+//    int sizestr=wcslen(str);
+//    for(const auto &x:exception){
+//        int sizex=wcslen(x);
+//        if(sizex==sizestr){
+//            bool flag=true;
+//            for(int i=0;i<sizex;i++){
+//                if(x[i]!=str[i]){
+//                    flag=false;
+//                    break;
+//                }
+//            }
+//            if(flag==true)
+//                return true;
+//        }
+//    }
+//    return false;
+//}
