@@ -95,21 +95,21 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
     LPBYTE pV = value;
     QString qtemp=QString::fromWCharArray(fullKeyName);
     string stemp=qtemp.toStdString();
-//        auto remove_useless_part_from_string=[](string src)->string{
-//            string tmp=src;
-//            int last_slash=0;
-//            for(int i=0;i<tmp.length();i++){
-//                if(tmp[i]=='\\'){
-//                     last_slash=i;
-//                     continue;
-//                }
-//                if((int)tmp[i]<0||(int)tmp[i]>255)
-//                    break;
+//    auto remove_useless_part_from_string=[](string src)->string{
+//        string tmp=src;
+//        int last_slash=0;
+//        for(int i=0;i<tmp.length();i++){
+//            if(tmp[i]=='\\'){
+//                 last_slash=i;
+//                 continue;
 //            }
-//            tmp.erase(tmp.begin()+last_slash-1,tmp.end());
-//            return tmp;
-//        };
-    //stemp=remove_useless_part_from_string(stemp);
+//            if((int)tmp[i]<0||(int)tmp[i]>255)
+//                break;
+//        }
+//        tmp.erase(tmp.begin()+last_slash-1,tmp.end());
+//        return tmp;
+//    };
+//    stemp=remove_useless_part_from_string(stemp);
     unsigned long i;
     int namesize=wcslen(valueName);
     if(namesize==0){
@@ -121,14 +121,14 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
     for(int i=0;i<namesize;i++)
         name+=(char)valueName[i];
     //str<<temp.toStdString()<<std::endl;
-    std::shared_ptr<RegField> row(new RegField);
-    row->key(stemp);
+    //std::shared_ptr<RegField> row(new RegField);
+    //row->key(stemp);
     if(log_on)
         str<<stemp<<std::endl;
-    row->value_name(name);
+    //row->value_name(name);
     if(log_on)
         str<<name<<":"<<std::endl;
-    string svalue="val : ";
+    string svalue;
     std::stringstream sstream;
     switch (valueType) {
     case REG_FULL_RESOURCE_DESCRIPTOR: /* 9: Resource list in the hardware description */
@@ -138,12 +138,12 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         for (i = 0; i < valueLen; i++, pV++){
             sstream<<std::hex<<(unsigned int)*pV<<" ";
         }
-        svalue+=sstream.str();
+        svalue=sstream.str();
         if(log_on)
-            str<<svalue<<std::endl;
-        row->type(1);
-        row->value(svalue.erase(0,6));
-        full_registry->push_back(row);
+            str<<"val : "<<svalue<<std::endl;
+        //row->type(1);
+        //row->value(svalue);
+        //full_registry->push_back(row);
         break;
     case REG_DWORD: /* 4: A 32-bit number. */
         //_tprintf(_T("%x"), (DWORD)*value);
@@ -151,12 +151,12 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         //qDebug()<<"dword";
         if(log_on)
             str<<"dword "<<std::endl;
-        stemp=std::to_string((DWORD)*value);
+        svalue=std::to_string((DWORD)*value);
         if(log_on)
-            str<<stemp<<std::endl<<std::endl;
-        row->type(3);
-        row->value(svalue.erase(0,6));
-        full_registry->push_back(row);
+            str<<"val : "<<svalue<<std::endl;
+        //row->type(3);
+        //row->value(svalue);
+        //full_registry->push_back(row);
         break;
     case REG_EXPAND_SZ: /* 2: null-terminated string with unexpanded references to environment variables (for example, “%PATH%”). */
     case REG_MULTI_SZ: /* 7: An array of null-terminated strings, terminated by two null characters. */
@@ -167,12 +167,12 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         if(log_on)
             str<<"str "<<std::endl;
         qtemp=QString::fromWCharArray((LPTSTR)value);
-        stemp=qtemp.toStdString();
+        svalue=qtemp.toStdString();
         if(log_on)
-            str<<stemp<<std::endl;
-        row->type(2);
-        row->value(svalue.erase(0,6));
-        full_registry->push_back(row);
+            str<<"val : "<<svalue<<std::endl;
+        //row->type(2);
+       // row->value(svalue);
+        //full_registry->push_back(row);
         break;
     case REG_DWORD_BIG_ENDIAN: /* 5:  A 32-bit number in big-endian format. */
     case REG_LINK: /* 6: A Unicode symbolic link. */
