@@ -27,6 +27,7 @@ private slots:
     void on_btn_login_clicked();
     void on_btn_registration_clicked();
     void on_full_archive_clicked();
+    void full_archive();
     //read during login process
     void read_log_in();
     //read during registration process
@@ -39,6 +40,7 @@ private:
     Ui::MainWindow *ui;
     std::mutex socket_mtx;
     std::unique_ptr<QTcpSocket> socket;
+    std::thread * thr_full_archive=nullptr;
     //connected = true when config file is valid, and connection is successful
     bool connected=false;
     //someone is login

@@ -44,6 +44,11 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 }
 MainWindow::~MainWindow(){
     delete ui;
+    if(thr_full_archive!=nullptr){
+        if(thr_full_archive->joinable())
+            thr_full_archive->join();
+        delete thr_full_archive;
+    }
 }
 void MainWindow::add_to_output(QString txt){
     ui->output->append(txt);
@@ -87,30 +92,67 @@ void MainWindow::on_btn_registration_clicked(){
     }
 }
 void MainWindow::on_full_archive_clicked(){
-    ui->output->clear();
+    if(thr_full_archive==nullptr){
+        thr_full_archive=new std::thread(&MainWindow::full_archive,this);
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Information);
+        msg.setText("Rozpoczeto pelna archwizacje rejestru.");
+        msg.setWindowTitle("Pelna archiwizacja rejestru");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
+    }
+    else{
+        if(thr_full_archive->joinable()){
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Trwa archiwizacja rejestru.");
+            msg.setWindowTitle("Pelna archiwizacja rejestru");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
+        }
+        else{
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Rozpoczeto pelna archwizacje rejestru.");
+            msg.setWindowTitle("Pelna archiwizacja rejestru");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
+            delete thr_full_archive;
+            thr_full_archive=new std::thread(&MainWindow::full_archive,this);
+        }
+    }
+}
+void MainWindow::full_archive(){
+    //ui->output->clear();
     QRegistry reg(this,false);
     BOOL flags[2];
     flags[0]=1;
     flags[1]=0;
     std::fstream str;
-    //str.open("logs2.txt",std::fstream::in | std::fstream::out | std::fstream::app);
+    str.open("logs2.txt",std::fstream::in | std::fstream::out | std::fstream::app);
+    std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp;
     if(ui->hkey_lm->isChecked()){
         qDebug()<<"Hkey_lm is run";
-        reg.TraverseRegistry(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",NULL,flags);
-//        std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp=reg.get_full_registry(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",NULL,flags);
-//        for(const auto &x:*temp){
-//            str<<*x<<std::endl;
-//        }
+        temp=reg.get_full_registry(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",NULL,flags);
     }
     if(ui->hkey_u->isChecked()){
         qDebug()<<"Hkey_users is run";
-        reg.TraverseRegistry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
-//        std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp=reg.get_full_registry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
-//        for(const auto &x:*temp){
-//            str<<*x<<std::endl;
-//        }
+        temp=reg.get_full_registry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
     }
-    qDebug()<<"Zrobione";
+    //qDebug()<<"Print";
+    for(const auto &x:*temp){
+        //str<<*x<<std::endl;
+        x->reduce_key();
+        str<<*x<<std::endl;
+    }
+    str.close();
+    QMessageBox msg;
+    msg.setIcon(QMessageBox::Information);
+    msg.setText("Ukonczono pelna archwizacje rejestru.");
+    msg.setWindowTitle("Pelna archiwizacja rejestru");
+    msg.setStandardButtons(QMessageBox::Ok);
+    msg.exec();
+
 }
 void MainWindow::read_log_in(){
     while(socket->canReadLine()){

@@ -13,11 +13,17 @@ QRegistry::QRegistry(MainWindow *window,bool log){
 QRegistry::~QRegistry(){
     str.close();
 }
+std::shared_ptr<std::list<std::shared_ptr<RegField> > > QRegistry::get_full_registry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
+    //full_registry=std::make_shared<std::list<std::shared_ptr<RegField>>>();
+    full_registry.reset(new std::list<std::shared_ptr<RegField>>());
+    TraverseRegistry(hKey,fullKeyName,subKey,flags);
+    return full_registry;
+}
 BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
-//  if(is_exception(fullKeyName)){
-//      qDebug()<<"Jestem tutaj";
-//      return true;
-//  }
+    //  if(is_exception(fullKeyName)){
+    //      qDebug()<<"Jestem tutaj";
+    //      return true;
+    //  }
     HKEY hSubKey;
     BOOL recursive = flags[0];
     DWORD valueType, index;
@@ -93,23 +99,8 @@ BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, L
 }
 BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWORD valueLen, LPTSTR fullKeyName){
     LPBYTE pV = value;
-    QString qtemp=QString::fromWCharArray(fullKeyName);
-    string stemp=qtemp.toStdString();
-//    auto remove_useless_part_from_string=[](string src)->string{
-//        string tmp=src;
-//        int last_slash=0;
-//        for(int i=0;i<tmp.length();i++){
-//            if(tmp[i]=='\\'){
-//                 last_slash=i;
-//                 continue;
-//            }
-//            if((int)tmp[i]<0||(int)tmp[i]>255)
-//                break;
-//        }
-//        tmp.erase(tmp.begin()+last_slash-1,tmp.end());
-//        return tmp;
-//    };
-//    stemp=remove_useless_part_from_string(stemp);
+    QString qkey=QString::fromWCharArray(fullKeyName);
+    string skey=qkey.toStdString();
     unsigned long i;
     int namesize=wcslen(valueName);
     if(namesize==0){
@@ -121,11 +112,11 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
     for(int i=0;i<namesize;i++)
         name+=(char)valueName[i];
     //str<<temp.toStdString()<<std::endl;
-    //std::shared_ptr<RegField> row(new RegField);
-    //row->key(stemp);
+    std::shared_ptr<RegField> row(new RegField());
+    row->key(skey);
     if(log_on)
-        str<<stemp<<std::endl;
-    //row->value_name(name);
+        str<<skey<<std::endl;
+    row->value_name(name);
     if(log_on)
         str<<name<<":"<<std::endl;
     string svalue;
@@ -141,9 +132,9 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         svalue=sstream.str();
         if(log_on)
             str<<"val : "<<svalue<<std::endl;
-        //row->type(1);
-        //row->value(svalue);
-        //full_registry->push_back(row);
+        row->type(1);
+        row->value(svalue);
+        full_registry->push_back(row);
         break;
     case REG_DWORD: /* 4: A 32-bit number. */
         //_tprintf(_T("%x"), (DWORD)*value);
@@ -154,9 +145,9 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         svalue=std::to_string((DWORD)*value);
         if(log_on)
             str<<"val : "<<svalue<<std::endl;
-        //row->type(3);
-        //row->value(svalue);
-        //full_registry->push_back(row);
+        row->type(3);
+        row->value(svalue);
+        full_registry->push_back(row);
         break;
     case REG_EXPAND_SZ: /* 2: null-terminated string with unexpanded references to environment variables (for example, “%PATH%”). */
     case REG_MULTI_SZ: /* 7: An array of null-terminated strings, terminated by two null characters. */
@@ -166,13 +157,13 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         //qDebug()<<"str";
         if(log_on)
             str<<"str "<<std::endl;
-        qtemp=QString::fromWCharArray((LPTSTR)value);
-        svalue=qtemp.toStdString();
+        qkey=QString::fromWCharArray((LPTSTR)value);
+        svalue=qkey.toStdString();
         if(log_on)
             str<<"val : "<<svalue<<std::endl;
-        //row->type(2);
-       // row->value(svalue);
-        //full_registry->push_back(row);
+        row->type(2);
+        row->value(svalue);
+        full_registry->push_back(row);
         break;
     case REG_DWORD_BIG_ENDIAN: /* 5:  A 32-bit number in big-endian format. */
     case REG_LINK: /* 6: A Unicode symbolic link. */
@@ -196,21 +187,3 @@ WINBOOL QRegistry::WriteSubKey(LPTSTR keyName, LPTSTR subKeyName){
     //window->add_to_output(temp);
     return TRUE;
 }
-//bool QRegistry::is_exception(const wchar_t *str){
-//    int sizestr=wcslen(str);
-//    for(const auto &x:exception){
-//        int sizex=wcslen(x);
-//        if(sizex==sizestr){
-//            bool flag=true;
-//            for(int i=0;i<sizex;i++){
-//                if(x[i]!=str[i]){
-//                    flag=false;
-//                    break;
-//                }
-//            }
-//            if(flag==true)
-//                return true;
-//        }
-//    }
-//    return false;
-//}
