@@ -27,7 +27,7 @@ private slots:
     void on_btn_login_clicked();
     void on_btn_registration_clicked();
     void on_full_archive_clicked();
-    void full_archive();
+    void full_archive(bool);
     //read during login process
     void read_log_in();
     //read during registration process
