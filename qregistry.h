@@ -8,16 +8,16 @@
 #include <vector>
 #include <list>
 #include <memory>
-#include "RegField.h"
+#include "regfield.h"
 class MainWindow;
 #define TSIZE sizeof (TCHAR)
 class QRegistry{
     bool log_on;
-    MainWindow * window;
+    //MainWindow * window;
     std::fstream str;
     std::shared_ptr<std::list<std::shared_ptr<RegField>>> full_registry;
 public:
-    QRegistry(MainWindow* window,bool log);
+    QRegistry(bool log);
     ~QRegistry();
     std::shared_ptr<std::list<std::shared_ptr<RegField>>> get_full_registry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags);
 private:

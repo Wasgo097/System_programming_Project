@@ -6,13 +6,12 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
-//#include <QSettings>
 #include <mutex>
 #include <fstream>
-#include <thread>
 #include <memory>
 #include <string>
 #include "ui_mainwindow.h"
+#include "full_archive_thr.h"
 typedef  std::string string;
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -27,7 +26,7 @@ private slots:
     void on_btn_login_clicked();
     void on_btn_registration_clicked();
     void on_full_archive_clicked();
-    void full_archive(bool);
+    //void full_archive(bool);
     //read during login process
     void read_log_in();
     //read during registration process
@@ -36,11 +35,28 @@ private slots:
     void read_register_save();
     //read during load register process
     void read_register_load();
+    void full_arch_start(){
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Information);
+        msg.setText("Rozpoczeto pelna archwizacje rejestru.");
+        msg.setWindowTitle("Pelna archiwizacja rejestru");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
+    }
+    void full_arch_end(){
+        QMessageBox msg;
+        msg.setIcon(QMessageBox::Information);
+        msg.setText("Ukonczono archwizacje rejestru.");
+        msg.setWindowTitle("Pelna archiwizacja rejestru");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
+    }
 private:
     Ui::MainWindow *ui;
     std::mutex socket_mtx;
-    std::unique_ptr<QTcpSocket> socket;
-    std::thread * thr_full_archive=nullptr;
+    std::shared_ptr<QTcpSocket> socket;
+    //std::thread * thr_full_archive=nullptr;
+    std::unique_ptr<Full_Archive_THR> thr_full_archive;
     //connected = true when config file is valid, and connection is successful
     bool connected=false;
     //someone is login

@@ -1,14 +1,12 @@
-#include "qregistry.h"
 #include "mainwindow.h"
-QRegistry::QRegistry(MainWindow *window,bool log){
+#include "qregistry.h"
+QRegistry::QRegistry(bool log){
     log_on=log;
-    this->window=window;
     if(log_on){
         str.open("logs.txt",std::fstream::in | std::fstream::out | std::fstream::app);
         if(str.good())
             qDebug()<<"good";
     }
-    //exception.push_back(L"HKEY_USERS\\.DEFAULT\\Control Panel\\Desktop\\");
 }
 QRegistry::~QRegistry(){
     str.close();
@@ -20,10 +18,6 @@ std::shared_ptr<std::list<std::shared_ptr<RegField> > > QRegistry::get_full_regi
     return full_registry;
 }
 BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
-    //  if(is_exception(fullKeyName)){
-    //      qDebug()<<"Jestem tutaj";
-    //      return true;
-    //  }
     HKEY hSubKey;
     BOOL recursive = flags[0];
     DWORD valueType, index;
@@ -41,26 +35,12 @@ BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, L
     TCHAR fullSubKeyName[MAX_PATH + 1];
     /* Open up the key handle. */
     if (RegOpenKeyEx(hKey, subKey, 0, KEY_READ, &hSubKey) != ERROR_SUCCESS){
-//      QMessageBox msg(window);
-//      msg.setIcon(QMessageBox::Warning);
-//      msg.setText("Nie można otworzyć klucza");
-//      //msg.setDetailedText("Skontaktuj się z twórcą oprogramowania");
-//      msg.setWindowTitle("Błąd dostępu do rejestru");
-//      msg.setStandardButtons(QMessageBox::Ok);
-//      msg.exec();
         if(log_on)
         str<<"exc3 cannot open key"<<std::endl;
         return false;
     }
     /*  Find max size info regarding the key and allocate storage */
     if (RegQueryInfoKey(hSubKey, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
-//      QMessageBox msg(window);
-//      msg.setIcon(QMessageBox::Warning);
-//      msg.setText("Nie można wyszukać informacji o podkluczu");
-//      //msg.setDetailedText("Skontaktuj się z twórcą oprogramowania");
-//      msg.setWindowTitle("Błąd dostępu do rejestru");
-//      msg.setStandardButtons(QMessageBox::Ok);
-//      msg.exec();
         if(log_on)
         str<<"exc4 search info about key"<<std::endl;
         return false;
@@ -111,7 +91,6 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
     string name="";
     for(int i=0;i<namesize;i++)
         name+=(char)valueName[i];
-    //str<<temp.toStdString()<<std::endl;
     std::shared_ptr<RegField> row(new RegField());
     row->key(skey);
     if(log_on)
@@ -137,9 +116,7 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         full_registry->push_back(row);
         break;
     case REG_DWORD: /* 4: A 32-bit number. */
-        //_tprintf(_T("%x"), (DWORD)*value);
-        //window->add_to_output("dword");
-        //qDebug()<<"dword";
+
         if(log_on)
             str<<"dword "<<std::endl;
         svalue=std::to_string((DWORD)*value);
@@ -152,9 +129,6 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
     case REG_EXPAND_SZ: /* 2: null-terminated string with unexpanded references to environment variables (for example, “%PATH%”). */
     case REG_MULTI_SZ: /* 7: An array of null-terminated strings, terminated by two null characters. */
     case REG_SZ: /* 1: A null-terminated string. */
-        //_tprintf(_T("%s"), (LPTSTR)value);
-        //window->add_to_output("sz");
-        //qDebug()<<"str";
         if(log_on)
             str<<"str "<<std::endl;
         qkey=QString::fromWCharArray((LPTSTR)value);
