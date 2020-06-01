@@ -37,7 +37,6 @@ MainWindow::~MainWindow(){
 void MainWindow::add_to_output(QString txt){
     ui->output->append(txt);
 }
-
 void MainWindow::on_btn_login_clicked(){
     if(_connector){
         if(_login_status){
@@ -58,17 +57,19 @@ void MainWindow::on_btn_login_clicked(){
         if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
             qDebug()<<"Poprawne passy, zalogowano "<<nick.c_str()<<" "<<pass.c_str();
             if(Connect_socket()){
+                qDebug()<<"Weszlo";
                 connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
                 _login_status=true;
                 disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
             }
             else{
                 QMessageBox msg(this);
-                msg.setIcon(QMessageBox::Information);
+                msg.setIcon(QMessageBox::Warning);
                 msg.setText("Nie udało się połączyć z serwerem");
                 msg.setWindowTitle("Błąd połączenia");
                 msg.setStandardButtons(QMessageBox::Ok);
                 msg.exec();
+                return;
             }
         }
         else{
@@ -103,16 +104,18 @@ void MainWindow::on_btn_registration_clicked(){
             if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
                 qDebug()<<"Poprawme passy, zarejestrowano "<<nick.c_str()<<" "<<pass.c_str();
                 if(Connect_socket()){
+                    qDebug()<<"Weszlo";
                     connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
                     disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
                 }
                 else{
                     QMessageBox msg(this);
-                    msg.setIcon(QMessageBox::Information);
+                    msg.setIcon(QMessageBox::Warning);
                     msg.setText("Nie udało się połączyć z serwerem");
                     msg.setWindowTitle("Błąd połączenia");
                     msg.setStandardButtons(QMessageBox::Ok);
                     msg.exec();
+                    return;
                 }
             }
             else{
@@ -235,17 +238,23 @@ string MainWindow::get_time_to_send(){
 }
 bool MainWindow::Connect_socket(){
     if(_connector==false)return false;
-    if(_socket.get()==nullptr){
+    if(_socket.get()==nullptr||!_connected){
         _socket=std::make_shared<QTcpSocket>(this);
         QString ip_temp=QString::fromStdString(_ip);
         quint16 port_temp=std::stoi(_port);
         _socket->connectToHost(ip_temp,port_temp);
-        if(_socket->waitForConnected()){
+        if(_socket->waitForConnected(1000)){
             qDebug()<<"Polaczono";
+            _connected=true;
             return true;
         }
         else{
             qDebug()<<"Nie polaczono";
+            //temp
+            _connected=true;
+            return true;
+            ///
+            _connected=false;
             return false;
         }
     }
@@ -266,9 +275,18 @@ void MainWindow::on_Log_out_clicked(){
         _socket->close();
         _socket.reset();
         _login_status=false;
+        _connected=false;
         QMessageBox msg;
         msg.setIcon(QMessageBox::Information);
         msg.setText("Użytkownik został wylogowany.");
+        msg.setWindowTitle("Wylogowano");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
+    }
+    else{
+        QMessageBox msg;
+        msg.setIcon(QMessageBox::Information);
+        msg.setText("Nie jest zalogowany");
         msg.setWindowTitle("Wylogowano");
         msg.setStandardButtons(QMessageBox::Ok);
         msg.exec();
