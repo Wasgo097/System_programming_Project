@@ -8,9 +8,10 @@ class Full_Archive_THR : public QThread{
     Q_OBJECT
     void run() override;
     std::shared_ptr<QTcpSocket> socket;
+    std::shared_ptr<std::mutex> socket_mtx;
     bool hkey_lm;
 public:
-    Full_Archive_THR(std::shared_ptr<QTcpSocket> socket,bool hkey_lm);
+    Full_Archive_THR(std::shared_ptr<QTcpSocket> socket,std::shared_ptr<std::mutex> socket_mtx,bool hkey_lm);
 };
 
 #endif // FULL_ARCHIVE_THR_H

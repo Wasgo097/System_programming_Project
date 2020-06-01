@@ -15,15 +15,21 @@ void Full_Archive_THR::run() {
         qDebug()<<"Hkey_users is run";
         temp=reg.get_full_registry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
     }
+    socket_mtx->lock();
     for(const auto &x:*temp){
         x->reduce_key();
-        str<<*x<<std::endl;
+        if(x->is_valid())
+            str<<*x<<std::endl;
+        //string temp=(string)*x+"\r\n";
+        //socket->write(temp.c_str());
     }
+    socket_mtx->unlock();
     str.close();
-    qDebug()<<"zrobione";
+    qDebug()<<"Done";
     this->quit();
 }
-Full_Archive_THR::Full_Archive_THR(std::shared_ptr<QTcpSocket> socket, bool hkey_lm){
+Full_Archive_THR::Full_Archive_THR(std::shared_ptr<QTcpSocket> socket,std::shared_ptr<std::mutex> socket_mtx, bool hkey_lm){
     this->socket=socket;
     this->hkey_lm=hkey_lm;
+    this->socket_mtx=socket_mtx;
 }
