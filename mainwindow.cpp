@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
             else{
                 qDebug()<<"Nie polaczono";
                 connected=true;//do usuniecia
+                login_status=true;
             }
         }
         catch (...) {
@@ -52,9 +53,24 @@ void MainWindow::add_to_output(QString txt){
 void MainWindow::on_btn_login_clicked(){
     if(connected){
         //login_process
-        QString nick=ui->log_nick->text();
-        QString pass=ui->log_pass->text();
-        qDebug()<<nick<<" "<<pass;
+        string nick=ui->log_nick->text().toStdString();
+        string pass=ui->log_pass->text().toStdString();
+        qDebug()<<nick.c_str()<<" "<<pass.c_str();
+        std::regex nick_regex("[\\w]{5,}");
+        std::regex pass_regex("[\\w !@#$%&*_]{6,}");
+        if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
+            qDebug()<<"Matched";
+        }
+        else{
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Podana wartość nicku lub hasła jest niepoprawna.");
+            msg.setWindowTitle("Niepoprawny nick i/lub haslo!");
+            msg.setDetailedText("Hasło musie zawierać min 6 znaków, może zawierać znaki specjalne !@#$%&*. Nick musi zawierać 5 znaków");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
+            return;
+        }
         connect(socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
         login_status=true;
         disconnect(socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
@@ -73,9 +89,24 @@ void MainWindow::on_btn_registration_clicked(){
     if(connected){
         if(!login_status){
             //registration process
-            QString nick=ui->log_nick->text();
-            QString pass=ui->log_pass->text();
-            qDebug()<<nick<<" "<<pass;
+            string nick=ui->log_nick->text().toStdString();
+            string pass=ui->log_pass->text().toStdString();
+            qDebug()<<nick.c_str()<<" "<<pass.c_str();
+            std::regex nick_regex("[\\w]{5,}");
+            std::regex pass_regex("[\\w !@#$%&*_]{6,}");
+            if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
+                qDebug()<<"Matched";
+            }
+            else{
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Information);
+                msg.setText("Podana wartość nicku lub hasła jest niepoprawna.");
+                msg.setWindowTitle("Niepoprawny nick i/lub haslo!");
+                msg.setDetailedText("Hasło musie zawierać min 6 znaków, może zawierać znaki specjalne !@#$%&*. Nick musi zawierać 5 znaków");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
+                return;
+            }
             connect(socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
             disconnect(socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
         }

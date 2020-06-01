@@ -10,6 +10,7 @@
 #include <fstream>
 #include <memory>
 #include <string>
+#include <regex>
 #include "ui_mainwindow.h"
 #include "full_archive_thr.h"
 typedef  std::string string;

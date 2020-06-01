@@ -25,6 +25,17 @@ void RegField::reduce_key(){
 }
 bool RegField::is_valid(){
     //todo regex for all fields 1-9 a-z A-Z ' ' / . - _
-    if(_key==""||_value_name=="")return false;
-    else return true;
+    if(_key.length()<6||_value_name=="")return false;
+    else{
+        std::regex key_regex("HKEY[\\w \\.-_]{1,}");
+        std::regex value_regex("[^';]{1,}");
+        if(std::regex_search(_key,key_regex)&&std::regex_search(_value_name,value_regex)){
+            qDebug()<<"Matched";
+            return true;
+        }
+        else{
+            qDebug()<<"Not matched";
+            return false;
+        }
+    }
 }

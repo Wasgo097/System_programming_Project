@@ -4,6 +4,7 @@
 #include <iostream>
 #include <exception>
 #include <regex>
+#include <QDebug>
 typedef std::string string;
 class RegField{
     string _key;
