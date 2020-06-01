@@ -30,11 +30,11 @@ bool RegField::is_valid(){
         std::regex key_regex("HKEY[\\w \\.-_]{1,}");
         std::regex value_regex("[^';]{1,}");
         if(std::regex_search(_key,key_regex)&&std::regex_search(_value_name,value_regex)){
-            qDebug()<<"Matched";
+            //qDebug()<<"Matched";
             return true;
         }
         else{
-            qDebug()<<"Not matched";
+            //qDebug()<<"Not matched";
             return false;
         }
     }

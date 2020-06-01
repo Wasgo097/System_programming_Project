@@ -166,6 +166,19 @@ color: rgb(0, 0, 0);</string>
           </widget>
          </widget>
         </widget>
+        <widget class="QPushButton" name="Log_out">
+         <property name="geometry">
+          <rect>
+           <x>600</x>
+           <y>0</y>
+           <width>80</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Wyloguj</string>
+         </property>
+        </widget>
        </widget>
        <widget class="QWidget" name="tab_2">
         <property name="cursor">

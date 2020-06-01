@@ -38,18 +38,20 @@ private slots:
     void full_arch_start();
     void full_arch_end();
     void on_tabWidget_2_tabBarClicked(int index);
+    void on_Log_out_clicked();
 private:
     Ui::MainWindow *ui;
-    std::shared_ptr<std::mutex> socket_mtx;
-    std::shared_ptr<QTcpSocket> socket;
-    std::unique_ptr<Full_Archive_THR> thr_full_archive;
-    //connected = true when config file is valid, and connection is successful
-    bool connected=false;
+    std::shared_ptr<std::mutex> _socket_mtx;
+    std::shared_ptr<QTcpSocket> _socket;
+    std::unique_ptr<Full_Archive_THR> _thr_full_archive;
+    //connector true when data from config file is valid
+    bool _connector=false;
     //someone is login
-    bool login_status=false;
-    string ip;
-    string port;
+    bool _login_status=false;
+    string _ip;
+    string _port;
 private:
     string get_time_to_send();
+    bool Connect_socket();
 };
 #endif // MAINWINDOW_H
