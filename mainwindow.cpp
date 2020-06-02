@@ -235,16 +235,19 @@ string MainWindow::get_time_to_send(){
 }
 bool MainWindow::Connect_socket(){
     if(_connector==false)return false;
-    if(_socket.get()==nullptr){
+    if(_socket.get()==nullptr||!_connected){
         _socket=std::make_shared<QTcpSocket>(this);
         QString ip_temp=QString::fromStdString(_ip);
         quint16 port_temp=std::stoi(_port);
         _socket->connectToHost(ip_temp,port_temp);
         if(_socket->waitForConnected()){
             qDebug()<<"Polaczono";
+            _connected=true;
             return true;
         }
         else{
+            _connected=true;//temp
+            return true;    //temp
             qDebug()<<"Nie polaczono";
             return false;
         }
