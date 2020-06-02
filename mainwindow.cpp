@@ -307,7 +307,7 @@ void MainWindow::on_one_archive_clicked(){
         //reduce hkey..\ from key
         size_t slashindex=subkey.find("\\");
         subkey.erase(0,slashindex+1);
-        mainkey=fullkey.substr(0,slashindex-1);
+        mainkey=fullkey.substr(0,slashindex);
         QRegistry reg(true);
         BOOL flags[2];
         flags[0]=1;
@@ -319,11 +319,11 @@ void MainWindow::on_one_archive_clicked(){
         wmainkey=std::wstring(mainkey.begin(),mainkey.end());
         wsubkey=std::wstring(subkey.begin(),subkey.end());
         wchar_t * temp_main=new wchar_t[wmainkey.length()];
-        size_t temp_end=wmainkey.copy(temp_main,wmainkey.length());
-        wmainkey[temp_end]='\0';
+        wmainkey.copy(temp_main,wmainkey.length());
+        temp_main[wmainkey.length()]='\0';
         wchar_t * temp_sub=new wchar_t[wsubkey.length()];
-        temp_end=wsubkey.copy(temp_sub,wsubkey.length());
-        wsubkey[temp_end]='\0';
+        wsubkey.copy(temp_sub,wsubkey.length());
+        temp_sub[wsubkey.length()]='\0';
         temp=reg.get_full_registry(main_key,temp_main,temp_sub,flags);
         _socket_mtx->lock();
         for(const auto &x:*temp){
