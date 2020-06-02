@@ -283,11 +283,17 @@ void MainWindow::on_one_archive_clicked(){
     size_t slash=stdoriginal.find("\\");
     string main_key=stdoriginal.substr(0,slash);
     string sub_key=stdoriginal.substr(slash+1);
-    qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
+    //qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
+    std::vector<string>subkeys;
     while(sub_key.find("\\")!=string::npos){
         slash=sub_key.find("\\");
-        string temp;
+        string temp=sub_key.substr(0,slash);
+        subkeys.push_back(temp);
+        sub_key.erase(0,slash+1);
     }
+    subkeys.push_back(sub_key);
+    for(auto&x:subkeys)
+        qDebug()<<x.c_str()<<" ";
     /////////////////////////////////
 //    HKEY hkSoftware;
 //    LONG result;

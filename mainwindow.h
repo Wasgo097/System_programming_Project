@@ -56,6 +56,5 @@ private:
 private:
     string get_time_to_send();
     bool Connect_socket();
-
 };
 #endif // MAINWINDOW_H
