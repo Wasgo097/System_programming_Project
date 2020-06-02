@@ -292,3 +292,81 @@ void MainWindow::on_Log_out_clicked(){
         msg.exec();
     }
 }
+void MainWindow::on_one_archive_clicked(){
+    std::regex key_regex("HKEY_(USERS|LOCAL_MACHINE)[\\w \\.-_]{1,}");
+    string key,value,subkey;
+    key=ui->key->text().toStdString();
+    subkey=key;
+    if(std::regex_search(key,key_regex)){
+        qDebug()<<"Matched";
+//        HKEY main_key;
+//        HKEY sub_key;
+//        DWORD valueType, index;
+//        DWORD numSubKeys, maxSubKeyLen, numValues, maxValueNameLen, maxValueLen;
+//        DWORD subKeyNameLen, valueNameLen, valueLen;
+//        FILETIME lastWriteTime;
+//        LPTSTR subKeyName, valueName;
+//        LPBYTE value;
+//        TCHAR fullSubKeyName[MAX_PATH + 1];
+//        if(key[5]=='U')
+//            main_key=HKEY_USERS;
+//        else
+//            main_key=HKEY_LOCAL_MACHINE;
+//        //reduce hkey..\ from key
+//        size_t slashindex=subkey.find("\\");
+//        subkey.erase(0,slashindex+1);
+//        //qDebug()<<key.c_str();
+//        if (RegOpenKeyEx(main_key,(LPCWSTR)(subkey.c_str()),0,KEY_READ,&sub_key) != ERROR_SUCCESS){
+//            qDebug()<<"Reg not open";
+//            return;
+//        }
+//        if (RegQueryInfoKey(sub_key, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
+//            qDebug()<<"Dont get info about key";
+//            return;
+//        }
+//        subKeyName =(LPTSTR) malloc(TSIZE * (maxSubKeyLen + 1));   /* size in bytes */
+//        valueName =(LPTSTR) malloc(TSIZE * (maxValueNameLen + 1));
+//        value =(LPBYTE) malloc(maxValueLen);
+
+//        free(subKeyName);
+//        free(valueName);
+//        free(value);
+//        RegCloseKey(sub_key);
+        QRegistry reg(false);
+        BOOL flags[2];
+        flags[0]=1;
+        flags[1]=0;
+        std::fstream str;
+        str.open("logs2.txt",std::fstream::in | std::fstream::out | std::fstream::app);
+        std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp;
+        if(hkey_lm){
+            qDebug()<<"Hkey_lm is run";
+            temp=reg.get_full_registry(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",NULL,flags);
+        }
+        else{
+            qDebug()<<"Hkey_users is run";
+            temp=reg.get_full_registry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
+        }
+        socket_mtx->lock();
+        for(const auto &x:*temp){
+            x->reduce_key();
+            if(x->is_valid())
+                str<<*x<<std::endl;
+            //string temp=(string)*x+"\r\n";
+            //socket->write(temp.c_str());
+        }
+        socket_mtx->unlock();
+        str.close();
+        qDebug()<<"Done";
+        this->quit();
+    }
+    else{
+        qDebug()<<"Not matched";
+//        QMessageBox msg(this);
+//        msg.setIcon(QMessageBox::Information);
+//        msg.setText("Błędny klucz rejestru");
+//        msg.setWindowTitle("Błąd wprowadzonych danych");
+//        msg.setStandardButtons(QMessageBox::Ok);
+//        msg.exec();
+    }
+}

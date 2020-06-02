@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
+#include <QSettings>
 #include <mutex>
 #include <fstream>
 #include <memory>
@@ -39,6 +40,8 @@ private slots:
     void full_arch_end();
     void on_tabWidget_2_tabBarClicked(int index);
     void on_Log_out_clicked();
+    void on_one_archive_clicked();
+
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<std::mutex> _socket_mtx;
