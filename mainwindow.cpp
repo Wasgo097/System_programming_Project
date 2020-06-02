@@ -308,36 +308,16 @@ void MainWindow::on_one_archive_clicked(){
         size_t slashindex=subkey.find("\\");
         subkey.erase(0,slashindex+1);
         mainkey=fullkey.substr(0,slashindex);
-        QRegistry reg(true);
-        BOOL flags[2];
-        flags[0]=1;
-        flags[1]=0;
-        std::fstream str;
-        str.open("logs2.txt",std::fstream::in | std::fstream::out | std::fstream::app);
-        std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp;
-        std::wstring wmainkey,wsubkey;
-        wmainkey=std::wstring(mainkey.begin(),mainkey.end());
-        wsubkey=std::wstring(subkey.begin(),subkey.end());
-        wchar_t * temp_main=new wchar_t[wmainkey.length()];
-        wmainkey.copy(temp_main,wmainkey.length());
-        temp_main[wmainkey.length()]='\0';
+        std::wstring wsubkey=std::wstring(subkey.begin(),subkey.end());
         wchar_t * temp_sub=new wchar_t[wsubkey.length()];
         wsubkey.copy(temp_sub,wsubkey.length());
         temp_sub[wsubkey.length()]='\0';
-        temp=reg.get_full_registry(main_key,temp_main,temp_sub,flags);
-        _socket_mtx->lock();
-        for(const auto &x:*temp){
-            x->reduce_key();
-            if(x->is_valid())
-                str<<*x<<std::endl;
-            //string temp=(string)*x+"\r\n";
-            //socket->write(temp.c_str());
-        }
-        _socket_mtx->unlock();
-        str.close();
-        qDebug()<<"Done";
-        delete [] temp_main;
-        delete [] temp_sub;
+        std::wstring wmainkey=std::wstring(mainkey.begin(),mainkey.end());
+        wchar_t * temp_main=new wchar_t[wmainkey.length()];
+        wmainkey.copy(temp_main,wmainkey.length());
+        temp_main[wmainkey.length()]='\0';
+        QRegistry reg(true);
+        auto fields=reg.get_one_key(main_key,temp_main,temp_sub);
     }
     else{
         qDebug()<<"Not matched";
