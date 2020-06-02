@@ -294,60 +294,38 @@ void MainWindow::on_Log_out_clicked(){
 }
 void MainWindow::on_one_archive_clicked(){
     std::regex key_regex("HKEY_(USERS|LOCAL_MACHINE)[\\w \\.-_]{1,}");
-    string key,value,subkey;
-    key=ui->key->text().toStdString();
-    subkey=key;
-    if(std::regex_search(key,key_regex)){
+    HKEY main_key;
+    string fullkey,subkey,mainkey;
+    fullkey=ui->key->text().toStdString();
+    subkey=fullkey;
+    if(std::regex_search(fullkey,key_regex)){
         qDebug()<<"Matched";
-//        HKEY main_key;
-//        HKEY sub_key;
-//        DWORD valueType, index;
-//        DWORD numSubKeys, maxSubKeyLen, numValues, maxValueNameLen, maxValueLen;
-//        DWORD subKeyNameLen, valueNameLen, valueLen;
-//        FILETIME lastWriteTime;
-//        LPTSTR subKeyName, valueName;
-//        LPBYTE value;
-//        TCHAR fullSubKeyName[MAX_PATH + 1];
-//        if(key[5]=='U')
-//            main_key=HKEY_USERS;
-//        else
-//            main_key=HKEY_LOCAL_MACHINE;
-//        //reduce hkey..\ from key
-//        size_t slashindex=subkey.find("\\");
-//        subkey.erase(0,slashindex+1);
-//        //qDebug()<<key.c_str();
-//        if (RegOpenKeyEx(main_key,(LPCWSTR)(subkey.c_str()),0,KEY_READ,&sub_key) != ERROR_SUCCESS){
-//            qDebug()<<"Reg not open";
-//            return;
-//        }
-//        if (RegQueryInfoKey(sub_key, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
-//            qDebug()<<"Dont get info about key";
-//            return;
-//        }
-//        subKeyName =(LPTSTR) malloc(TSIZE * (maxSubKeyLen + 1));   /* size in bytes */
-//        valueName =(LPTSTR) malloc(TSIZE * (maxValueNameLen + 1));
-//        value =(LPBYTE) malloc(maxValueLen);
-
-//        free(subKeyName);
-//        free(valueName);
-//        free(value);
-//        RegCloseKey(sub_key);
-        QRegistry reg(false);
+        if(fullkey[5]=='U')
+            main_key=HKEY_USERS;
+        else
+            main_key=HKEY_LOCAL_MACHINE;
+        //reduce hkey..\ from key
+        size_t slashindex=subkey.find("\\");
+        subkey.erase(0,slashindex+1);
+        mainkey=fullkey.substr(0,slashindex-1);
+        QRegistry reg(true);
         BOOL flags[2];
         flags[0]=1;
         flags[1]=0;
         std::fstream str;
         str.open("logs2.txt",std::fstream::in | std::fstream::out | std::fstream::app);
         std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp;
-        if(hkey_lm){
-            qDebug()<<"Hkey_lm is run";
-            temp=reg.get_full_registry(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",NULL,flags);
-        }
-        else{
-            qDebug()<<"Hkey_users is run";
-            temp=reg.get_full_registry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
-        }
-        socket_mtx->lock();
+        std::wstring wmainkey,wsubkey;
+        wmainkey=std::wstring(mainkey.begin(),mainkey.end());
+        wsubkey=std::wstring(subkey.begin(),subkey.end());
+        wchar_t * temp_main=new wchar_t[wmainkey.length()];
+        size_t temp_end=wmainkey.copy(temp_main,wmainkey.length());
+        wmainkey[temp_end]='\0';
+        wchar_t * temp_sub=new wchar_t[wsubkey.length()];
+        temp_end=wsubkey.copy(temp_sub,wsubkey.length());
+        wsubkey[temp_end]='\0';
+        temp=reg.get_full_registry(main_key,temp_main,temp_sub,flags);
+        _socket_mtx->lock();
         for(const auto &x:*temp){
             x->reduce_key();
             if(x->is_valid())
@@ -355,10 +333,11 @@ void MainWindow::on_one_archive_clicked(){
             //string temp=(string)*x+"\r\n";
             //socket->write(temp.c_str());
         }
-        socket_mtx->unlock();
+        _socket_mtx->unlock();
         str.close();
         qDebug()<<"Done";
-        this->quit();
+        delete [] temp_main;
+        delete [] temp_sub;
     }
     else{
         qDebug()<<"Not matched";
