@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     }
 }
 MainWindow::~MainWindow(){
-    _thr_full_archive->wait();
+    if(_thr_full_archive->isRunning())_thr_full_archive->wait();
     delete ui;
 }
 void MainWindow::add_to_output(QString txt){
@@ -276,4 +276,52 @@ void MainWindow::on_Log_out_clicked(){
         msg.setStandardButtons(QMessageBox::Ok);
         msg.exec();
     }
+}
+void MainWindow::on_one_archive_clicked(){
+    QString original=ui->key->text();
+    string stdoriginal=original.toStdString();
+    size_t slash=stdoriginal.find("\\");
+    string main_key=stdoriginal.substr(0,slash);
+    string sub_key=stdoriginal.substr(slash+1);
+    qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
+    while(sub_key.find("\\")!=string::npos){
+        slash=sub_key.find("\\");
+        string temp;
+    }
+    /////////////////////////////////
+//    HKEY hkSoftware;
+//    LONG result;
+//    result = RegOpenKeyEx( HKEY_LOCAL_MACHINE, L"SOFTWARE", 0, KEY_ALL_ACCESS, & hkSoftware );
+//    if( result == ERROR_SUCCESS ){
+//        qDebug()<<"Otworzono klucz";
+//        HKEY hkTest;
+//        DWORD dwDisp;
+//        result = RegCreateKeyEx( hkSoftware, L"test", 0, NULL, REG_OPTION_NON_VOLATILE,
+//        KEY_ALL_ACCESS, NULL, & hkTest, & dwDisp );
+//        if( result == ERROR_SUCCESS )
+//        if( dwDisp == REG_CREATED_NEW_KEY )
+//            qDebug()<<"Stworzono";
+//        else if( dwDisp == REG_OPENED_EXISTING_KEY )
+//            qDebug()<<"Otworzono";
+//        wchar_t buf[ 20 ];
+//        lstrcpy( buf, L"Jakiś tam tekst" );
+//        result = RegSetValueEx( hkTest, L"MojaWartość", 0, REG_SZ,( LPBYTE ) buf, lstrlen( buf ) + 1 );
+//        if( result == ERROR_SUCCESS )
+//            qDebug()<<"Ustawiono";
+//        char buf2[ 21 ];
+//        DWORD dwBufSize = 20;
+//        DWORD dwRegsz = REG_SZ;
+//        result = RegQueryValueEx( hkTest, L"MojaWartość", NULL, & dwRegsz,( LPBYTE ) buf, & dwBufSize );
+//        if( result == ERROR_SUCCESS ) {
+//            buf2[ 20 ] = '\0';
+//            qDebug()<<"zapis"<<buf2;
+//        }
+        ///////////////////////////////////////////
+//        result = RegDeleteValue( hkTest, L"MojaWartość" );
+//        if( result == ERROR_SUCCESS )
+//             qDebug()<<"Usunieto wartosc";
+//        result = RegDeleteKey( hkSoftware, L"test" ); // usuń klucz "test"
+//        if( result == ERROR_SUCCESS )
+//             qDebug()<<"Usunieto klucz\n";
+//    }
 }
