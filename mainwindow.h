@@ -6,7 +6,6 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
-#include <QSettings>
 #include <mutex>
 #include <fstream>
 #include <memory>
@@ -40,8 +39,6 @@ private slots:
     void full_arch_end();
     void on_tabWidget_2_tabBarClicked(int index);
     void on_Log_out_clicked();
-    void on_one_archive_clicked();
-
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<std::mutex> _socket_mtx;
@@ -49,8 +46,6 @@ private:
     std::unique_ptr<Full_Archive_THR> _thr_full_archive;
     //connector true when data from config file is valid
     bool _connector=false;
-    //socket is connected
-    bool _connected=false;
     //someone is login
     bool _login_status=false;
     string _ip;

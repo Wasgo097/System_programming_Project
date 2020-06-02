@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     }
 }
 MainWindow::~MainWindow(){
+    _thr_full_archive->wait();
     delete ui;
 }
 void MainWindow::add_to_output(QString txt){
@@ -57,19 +58,17 @@ void MainWindow::on_btn_login_clicked(){
         if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
             qDebug()<<"Poprawne passy, zalogowano "<<nick.c_str()<<" "<<pass.c_str();
             if(Connect_socket()){
-                qDebug()<<"Weszlo";
                 connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
                 _login_status=true;
                 disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
             }
             else{
                 QMessageBox msg(this);
-                msg.setIcon(QMessageBox::Warning);
+                msg.setIcon(QMessageBox::Information);
                 msg.setText("Nie udało się połączyć z serwerem");
                 msg.setWindowTitle("Błąd połączenia");
                 msg.setStandardButtons(QMessageBox::Ok);
                 msg.exec();
-                return;
             }
         }
         else{
@@ -104,18 +103,16 @@ void MainWindow::on_btn_registration_clicked(){
             if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
                 qDebug()<<"Poprawme passy, zarejestrowano "<<nick.c_str()<<" "<<pass.c_str();
                 if(Connect_socket()){
-                    qDebug()<<"Weszlo";
                     connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
                     disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
                 }
                 else{
                     QMessageBox msg(this);
-                    msg.setIcon(QMessageBox::Warning);
+                    msg.setIcon(QMessageBox::Information);
                     msg.setText("Nie udało się połączyć z serwerem");
                     msg.setWindowTitle("Błąd połączenia");
                     msg.setStandardButtons(QMessageBox::Ok);
                     msg.exec();
-                    return;
                 }
             }
             else{
@@ -238,23 +235,17 @@ string MainWindow::get_time_to_send(){
 }
 bool MainWindow::Connect_socket(){
     if(_connector==false)return false;
-    if(_socket.get()==nullptr||!_connected){
+    if(_socket.get()==nullptr){
         _socket=std::make_shared<QTcpSocket>(this);
         QString ip_temp=QString::fromStdString(_ip);
         quint16 port_temp=std::stoi(_port);
         _socket->connectToHost(ip_temp,port_temp);
-        if(_socket->waitForConnected(1000)){
+        if(_socket->waitForConnected()){
             qDebug()<<"Polaczono";
-            _connected=true;
             return true;
         }
         else{
             qDebug()<<"Nie polaczono";
-            //temp
-            _connected=true;
-            return true;
-            ///
-            _connected=false;
             return false;
         }
     }
@@ -275,57 +266,11 @@ void MainWindow::on_Log_out_clicked(){
         _socket->close();
         _socket.reset();
         _login_status=false;
-        _connected=false;
         QMessageBox msg;
         msg.setIcon(QMessageBox::Information);
         msg.setText("Użytkownik został wylogowany.");
         msg.setWindowTitle("Wylogowano");
         msg.setStandardButtons(QMessageBox::Ok);
         msg.exec();
-    }
-    else{
-        QMessageBox msg;
-        msg.setIcon(QMessageBox::Information);
-        msg.setText("Nie jest zalogowany");
-        msg.setWindowTitle("Wylogowano");
-        msg.setStandardButtons(QMessageBox::Ok);
-        msg.exec();
-    }
-}
-void MainWindow::on_one_archive_clicked(){
-    std::regex key_regex("HKEY_(USERS|LOCAL_MACHINE)[\\w \\.-_]{1,}");
-    HKEY main_key;
-    string fullkey,subkey,mainkey;
-    fullkey=ui->key->text().toStdString();
-    subkey=fullkey;
-    if(std::regex_search(fullkey,key_regex)){
-        qDebug()<<"Matched";
-        if(fullkey[5]=='U')
-            main_key=HKEY_USERS;
-        else
-            main_key=HKEY_LOCAL_MACHINE;
-        //reduce hkey..\ from key
-        size_t slashindex=subkey.find("\\");
-        subkey.erase(0,slashindex+1);
-        mainkey=fullkey.substr(0,slashindex);
-        std::wstring wsubkey=std::wstring(subkey.begin(),subkey.end());
-        wchar_t * temp_sub=new wchar_t[wsubkey.length()];
-        wsubkey.copy(temp_sub,wsubkey.length());
-        temp_sub[wsubkey.length()]='\0';
-        std::wstring wmainkey=std::wstring(mainkey.begin(),mainkey.end());
-        wchar_t * temp_main=new wchar_t[wmainkey.length()];
-        wmainkey.copy(temp_main,wmainkey.length());
-        temp_main[wmainkey.length()]='\0';
-        QRegistry reg(true);
-        auto fields=reg.get_one_key(main_key,temp_main,temp_sub);
-    }
-    else{
-        qDebug()<<"Not matched";
-//        QMessageBox msg(this);
-//        msg.setIcon(QMessageBox::Information);
-//        msg.setText("Błędny klucz rejestru");
-//        msg.setWindowTitle("Błąd wprowadzonych danych");
-//        msg.setStandardButtons(QMessageBox::Ok);
-//        msg.exec();
     }
 }
