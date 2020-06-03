@@ -282,99 +282,39 @@ void MainWindow::on_one_archive_clicked(){
     wchar_t* wsubkey=nullptr;
     wchar_t* wmainkey=nullptr;
     try {
-//        QString original=ui->key->text();
-//        string stdoriginal=original.toStdString();
-//        size_t slash=stdoriginal.find("\\");
-//        string main_key=stdoriginal.substr(0,slash);
-//        string sub_key=stdoriginal.substr(slash+1);
-//        QRegistry reg(true);
-//        //qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
-//        HKEY hmainkey;
-//        wsubkey=new wchar_t[sub_key.length()+1];
-//        wmainkey=new wchar_t[main_key.length()+1];
-//        if(stdoriginal[5]=='L'){
-//            hmainkey=HKEY_LOCAL_MACHINE;
-//        }
-//        else{
-//            hmainkey=HKEY_USERS;
-//        }
-//        QString::fromStdString(main_key).toStdWString().c_str();
-//        std::wstring tempwsubkey(sub_key.begin(),sub_key.end());
-//        wcscpy(wsubkey,tempwsubkey.c_str());
-//        wsubkey[sub_key.length()]='\0';
-//        std::wstring tempwmainkey(main_key.begin(),main_key.end());
-//        wcscpy(wmainkey,tempwmainkey.c_str());
-//        wsubkey[tempwmainkey.length()]='\0';
-//        //auto registry=reg.get_one_key(hmainkey,wmainkey,wsubkey);
-//        auto registry=reg.get_one_key(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",L"SOFTWARE\\hejo\\");
-//        for(auto&x:*registry){
-//            qDebug()<<QString::fromStdString((string)*x);
-//        }
-
-//        tempwstr.copy(wsubkey,tempwstr.length());
-//        wsubkey[tempwstr.length()]='\0';
-//        int x=5+2;
-//        qDebug()<<x;
-
-//        std::queue<string>subkeys;
-//        while(sub_key.find("\\")!=string::npos){
-//            slash=sub_key.find("\\");
-//            string temp=sub_key.substr(0,slash);
-//            subkeys.push(temp);
-//            sub_key.erase(0,slash+1);
-//        }
-//        subkeys.push(sub_key);
-//        while(!subkeys.empty()){
-//            qDebug()<<subkeys.front().c_str();
-//            subkeys.pop();
-//        }
-
-
-        HKEY key;
-        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
-            qDebug()<<"Otworzono";
+        QString original=ui->key->text();
+        string stdoriginal=original.toStdString();
+        size_t slash=stdoriginal.find("\\");
+        string main_key=stdoriginal.substr(0,slash);
+        string sub_key=stdoriginal.substr(slash+1);
+        QRegistry reg(true);
+        qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
+        HKEY hmainkey;
+        wsubkey=new wchar_t[sub_key.length()+1];
+        wmainkey=new wchar_t[main_key.length()+1];
+        if(stdoriginal[5]=='L'){
+            hmainkey=HKEY_LOCAL_MACHINE;
+        }
+        else{
+            hmainkey=HKEY_USERS;
+        }
+        QString::fromStdString(main_key).toStdWString().c_str();
+        std::wstring tempwsubkey(sub_key.begin(),sub_key.end());
+        wcscpy(wsubkey,tempwsubkey.c_str());
+        wsubkey[sub_key.length()]='\0';
+        std::wstring tempwmainkey(main_key.begin(),main_key.end());
+        wcscpy(wmainkey,tempwmainkey.c_str());
+        wsubkey[tempwmainkey.length()]='\0';
+        auto registry=reg.get_one_key(hmainkey,wmainkey,wsubkey);
+        //auto registry=reg.get_one_key(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",L"SOFTWARE\\test");
+        for(auto&x:*registry){
+            qDebug()<<QString::fromStdString((string)*x);
         }
 
-
-
-        //QRegistry reg(true);
-        //auto key=reg.get_one_key()
-        /////////////////////////////////
-    //    HKEY hkSoftware;
-    //    LONG result;
-    //    result = RegOpenKeyEx( HKEY_LOCAL_MACHINE, L"SOFTWARE", 0, KEY_ALL_ACCESS, & hkSoftware );
-    //    if( result == ERROR_SUCCESS ){
-    //        qDebug()<<"Otworzono klucz";
-    //        HKEY hkTest;
-    //        DWORD dwDisp;
-    //        result = RegCreateKeyEx( hkSoftware, L"test", 0, NULL, REG_OPTION_NON_VOLATILE,
-    //        KEY_ALL_ACCESS, NULL, & hkTest, & dwDisp );
-    //        if( result == ERROR_SUCCESS )
-    //        if( dwDisp == REG_CREATED_NEW_KEY )
-    //            qDebug()<<"Stworzono";
-    //        else if( dwDisp == REG_OPENED_EXISTING_KEY )
-    //            qDebug()<<"Otworzono";
-    //        wchar_t buf[ 20 ];
-    //        lstrcpy( buf, L"Jakiś tam tekst" );
-    //        result = RegSetValueEx( hkTest, L"MojaWartość", 0, REG_SZ,( LPBYTE ) buf, lstrlen( buf ) + 1 );
-    //        if( result == ERROR_SUCCESS )
-    //            qDebug()<<"Ustawiono";
-    //        char buf2[ 21 ];
-    //        DWORD dwBufSize = 20;
-    //        DWORD dwRegsz = REG_SZ;
-    //        result = RegQueryValueEx( hkTest, L"MojaWartość", NULL, & dwRegsz,( LPBYTE ) buf, & dwBufSize );
-    //        if( result == ERROR_SUCCESS ) {
-    //            buf2[ 20 ] = '\0';
-    //            qDebug()<<"zapis"<<buf2;
-    //        }
-            ///////////////////////////////////////////
-    //        result = RegDeleteValue( hkTest, L"MojaWartość" );
-    //        if( result == ERROR_SUCCESS )
-    //             qDebug()<<"Usunieto wartosc";
-    //        result = RegDeleteKey( hkSoftware, L"test" ); // usuń klucz "test"
-    //        if( result == ERROR_SUCCESS )
-    //             qDebug()<<"Usunieto klucz\n";
-    //    }
+//        HKEY key;
+//        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
+//            qDebug()<<"Otworzono";
+//        }
     }catch (const char * exc) {
         qDebug()<<"Error "<<exc;
     }
