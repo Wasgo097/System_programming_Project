@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
             str.close();
             _socket_mtx=std::make_shared<std::mutex>();
             _connector=true;
+            _login_status=true;//temp
         }
         catch (...) {
             QMessageBox msg(this);
@@ -278,24 +279,30 @@ void MainWindow::on_Log_out_clicked(){
     }
 }
 void MainWindow::on_one_archive_clicked(){
-    QString original=ui->key->text();
-    string stdoriginal=original.toStdString();
-    size_t slash=stdoriginal.find("\\");
-    string main_key=stdoriginal.substr(0,slash);
-    string sub_key=stdoriginal.substr(slash+1);
-    //qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
-    std::queue<string>subkeys;
-    while(sub_key.find("\\")!=string::npos){
-        slash=sub_key.find("\\");
-        string temp=sub_key.substr(0,slash);
-        subkeys.push(temp);
-        sub_key.erase(0,slash+1);
+//    QString original=ui->key->text();
+//    string stdoriginal=original.toStdString();
+//    size_t slash=stdoriginal.find("\\");
+//    string main_key=stdoriginal.substr(0,slash);
+//    string sub_key=stdoriginal.substr(slash+1);
+//    //qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
+//    std::queue<string>subkeys;
+//    while(sub_key.find("\\")!=string::npos){
+//        slash=sub_key.find("\\");
+//        string temp=sub_key.substr(0,slash);
+//        subkeys.push(temp);
+//        sub_key.erase(0,slash+1);
+//    }
+//    subkeys.push(sub_key);
+//    while(!subkeys.empty()){
+//        qDebug()<<subkeys.front().c_str();
+//        subkeys.pop();
+//    }
+    HKEY key;
+    if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"\\SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)!=ERROR_SUCCESS){
+        qDebug()<<"Otworzono";
     }
-    subkeys.push(sub_key);
-    while(!subkeys.empty()){
-        qDebug()<<subkeys.front().c_str();
-        subkeys.pop();
-    }
+    //QRegistry reg(true);
+    //auto key=reg.get_one_key()
     /////////////////////////////////
 //    HKEY hkSoftware;
 //    LONG result;

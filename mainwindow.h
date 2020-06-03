@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <regex>
+#include <windows.h>
 #include "ui_mainwindow.h"
 #include "full_archive_thr.h"
 typedef  std::string string;
