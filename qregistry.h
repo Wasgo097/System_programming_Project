@@ -108,7 +108,13 @@ private:
         }
         return TRUE;
     }
+<<<<<<< HEAD
     BOOL WriteSubKey(LPTSTR keyName, LPTSTR subKeyName);
     BOOL TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags);
+=======
+    BOOL Import(std::shared_ptr<std::list<std::shared_ptr<RegField>>> & keys){
+        return false;
+    }
+>>>>>>> develop_receive
 };
 #endif // QREGISTRY_H
