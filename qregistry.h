@@ -91,5 +91,8 @@ private:
         RegCloseKey(hSubKey);
         return true;
     }
+    BOOL Import(std::shared_ptr<std::list<std::shared_ptr<RegField>>> & keys){
+        return false;
+    }
 };
 #endif // QREGISTRY_H

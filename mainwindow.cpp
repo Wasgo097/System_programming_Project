@@ -216,11 +216,11 @@ void MainWindow::read_log_in(){
                 msg.setStandardButtons(QMessageBox::Ok);
                 msg.exec();
             }
-            disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
         } catch (const char * exc) {
             qDebug()<<exc;
         }
     }
+    disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
     _socket_mtx->unlock();
 }
 void MainWindow::read_sign_in(){
@@ -246,22 +246,70 @@ void MainWindow::read_sign_in(){
                 msg.setStandardButtons(QMessageBox::Ok);
                 msg.exec();
             }
-            disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
         } catch (const char * exc) {
             qDebug()<<exc;
         }
     }
+    disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
     _socket_mtx->unlock();
 }
 void MainWindow::read_register_save(){
-    while(_socket->canReadLine()){
-        ui->output->append(_socket->readLine().trimmed());
+    _socket_mtx->lock();
+    if(_socket->canReadLine()){
+        try {
+            QString read=_socket->readLine().trimmed();
+            auto list=read.split('|');
+            if(list[0]=="registry"&&list[1]=="correct"){
+                _login_status=true;
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Information);
+                msg.setText("Udało się zarchiwizować dane");
+                msg.setWindowTitle("Archiwizacja");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
+            }
+            else{
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Information);
+                msg.setText("Nie udało się zarchiwizować danych");
+                msg.setWindowTitle("Rejestracja");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
+            }
+        } catch (const char * exc) {
+            qDebug()<<exc;
+        }
     }
+    disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_register_save);
+    _socket_mtx->unlock();
 }
 void MainWindow::read_register_load(){
-    while(_socket->canReadLine()){
-        ui->output->append(_socket->readLine().trimmed());
+    _socket_mtx->lock();
+    try {
+        std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp(new std::list<std::shared_ptr<RegField>>());
+        while(_socket->canReadLine()){
+            QString read=_socket->readLine().trimmed();
+            auto list=read.split('|');
+            if(list[0]=="registry"&&list.size()==5){
+                string _key=list[1].toStdString();
+                string _value_name=list[2].toStdString();
+                int _type=std::stoi(list[3].toStdString());
+                string _value=list[4].toStdString();
+                std::shared_ptr<RegField> row(new RegField(_key,_value_name,_value,_type));
+                temp->push_back(row);
+            }
+        }
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Information);
+        msg.setText("Udało się zaimportować dane");
+        msg.setWindowTitle("Archiwizacja");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
+    } catch (const char * exc) {
+        qDebug()<<exc;
     }
+    disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_register_load);
+    _socket_mtx->unlock();
 }
 void MainWindow::full_arch_start(){
     QMessageBox msg(this);

@@ -32,15 +32,16 @@ private slots:
     void read_log_in();
     //read during registration process
     void read_sign_in();
-    //read during send register process
-    void read_register_save();
-    //read during load register process
-    void read_register_load();
     void full_arch_start();
     void full_arch_end();
     void on_tabWidget_2_tabBarClicked(int index);
     void on_Log_out_clicked();
     void on_one_archive_clicked();
+public slots:
+    //read during send register process
+    void read_register_save();
+    //read during load register process
+    void read_register_load();
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<std::mutex> _socket_mtx;
