@@ -279,64 +279,129 @@ void MainWindow::on_Log_out_clicked(){
     }
 }
 void MainWindow::on_one_archive_clicked(){
-//    QString original=ui->key->text();
-//    string stdoriginal=original.toStdString();
-//    size_t slash=stdoriginal.find("\\");
-//    string main_key=stdoriginal.substr(0,slash);
-//    string sub_key=stdoriginal.substr(slash+1);
-//    //qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
-//    std::queue<string>subkeys;
-//    while(sub_key.find("\\")!=string::npos){
-//        slash=sub_key.find("\\");
-//        string temp=sub_key.substr(0,slash);
-//        subkeys.push(temp);
-//        sub_key.erase(0,slash+1);
-//    }
-//    subkeys.push(sub_key);
-//    while(!subkeys.empty()){
-//        qDebug()<<subkeys.front().c_str();
-//        subkeys.pop();
-//    }
-    HKEY key;
-    if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"\\SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)!=ERROR_SUCCESS){
-        qDebug()<<"Otworzono";
-    }
-    //QRegistry reg(true);
-    //auto key=reg.get_one_key()
-    /////////////////////////////////
-//    HKEY hkSoftware;
-//    LONG result;
-//    result = RegOpenKeyEx( HKEY_LOCAL_MACHINE, L"SOFTWARE", 0, KEY_ALL_ACCESS, & hkSoftware );
-//    if( result == ERROR_SUCCESS ){
-//        qDebug()<<"Otworzono klucz";
-//        HKEY hkTest;
-//        DWORD dwDisp;
-//        result = RegCreateKeyEx( hkSoftware, L"test", 0, NULL, REG_OPTION_NON_VOLATILE,
-//        KEY_ALL_ACCESS, NULL, & hkTest, & dwDisp );
-//        if( result == ERROR_SUCCESS )
-//        if( dwDisp == REG_CREATED_NEW_KEY )
-//            qDebug()<<"Stworzono";
-//        else if( dwDisp == REG_OPENED_EXISTING_KEY )
-//            qDebug()<<"Otworzono";
-//        wchar_t buf[ 20 ];
-//        lstrcpy( buf, L"Jakiś tam tekst" );
-//        result = RegSetValueEx( hkTest, L"MojaWartość", 0, REG_SZ,( LPBYTE ) buf, lstrlen( buf ) + 1 );
-//        if( result == ERROR_SUCCESS )
-//            qDebug()<<"Ustawiono";
-//        char buf2[ 21 ];
-//        DWORD dwBufSize = 20;
-//        DWORD dwRegsz = REG_SZ;
-//        result = RegQueryValueEx( hkTest, L"MojaWartość", NULL, & dwRegsz,( LPBYTE ) buf, & dwBufSize );
-//        if( result == ERROR_SUCCESS ) {
-//            buf2[ 20 ] = '\0';
-//            qDebug()<<"zapis"<<buf2;
+    try {
+        QString original=ui->key->text();
+        string stdoriginal=original.toStdString();
+        size_t slash=stdoriginal.find("\\");
+        string main_key=stdoriginal.substr(0,slash);
+        string sub_key=stdoriginal.substr(slash+1);
+        std::shared_ptr<std::list<std::shared_ptr<RegField>>> registry(new std::list<std::shared_ptr<RegField>>());
+        //qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
+        HKEY hmainkey;
+        HKEY hsubkey;
+        DWORD valueType, index;
+        DWORD numSubKeys, maxSubKeyLen, numValues, maxValueNameLen, maxValueLen;
+        DWORD subKeyNameLen, valueNameLen, valueLen;
+        FILETIME lastWriteTime;
+        LPTSTR subKeyName, valueName;
+        LPBYTE value;
+        TCHAR fullSubKeyName[MAX_PATH + 1];
+        wchar_t* wsubkey=new wchar_t[sub_key.length()+1];
+        if(stdoriginal[5]=='L')hmainkey=HKEY_LOCAL_MACHINE;
+        else hmainkey=HKEY_USERS;
+        std::wstring tempwstr(sub_key.begin(),sub_key.end());
+        wcscpy(wsubkey,tempwstr.c_str());
+        wsubkey[sub_key.length()]='\0';
+        //qDebug()<<wsubkey<<" "<<tempwstr.c_str();
+        if(RegOpenKeyEx(hmainkey,wsubkey,0,KEY_ALL_ACCESS,&hsubkey)!=ERROR_SUCCESS){
+            throw "Nie otworzono";
+        }
+        else{
+            qDebug()<<"Otworzono";
+        }
+        if (RegQueryInfoKey(hsubkey, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
+            throw"exc4 search info about key";
+        }
+        else{
+            qDebug()<<"Wydobyto info";
+        }
+        subKeyName =(LPTSTR) malloc(TSIZE * (maxSubKeyLen + 1));   /* size in bytes */
+        valueName =(LPTSTR) malloc(TSIZE * (maxValueNameLen + 1));
+        value =(LPBYTE) malloc(maxValueLen);      /* size in bytes */
+        /*First pass for key-value pairs.
+            Important assumption: No one edits the registry under this subkey
+            during this loop. Doing so could change add new values */
+        swprintf_s(fullSubKeyName, _T("%s\\%s"), original.toStdWString().c_str(), subKeyName);
+        for (index = 0; index < numValues; index++) {
+            valueNameLen = maxValueNameLen + 1; /* A very common bug is to forget to set */
+            valueLen = maxValueLen + 1;     /* these values; both are in/out params  */
+            RegEnumValue(hsubkey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
+            WriteValue(valueName, valueType, value, valueLen,fullSubKeyName,registry);
+            /*  If you wanted to change a value, this would be the place to do it.
+                    RegSetValueEx(hSubKey, valueName, 0, valueType, pNewValue, NewValueSize); */
+        }
+        free(subKeyName);
+        free(valueName);
+        free(value);
+        RegCloseKey(hsubkey);
+        for(auto&x:*registry){
+            qDebug()<<QString::fromStdString((string)*x);
+        }
+//        tempwstr.copy(wsubkey,tempwstr.length());
+//        wsubkey[tempwstr.length()]='\0';
+//        int x=5+2;
+//        qDebug()<<x;
+
+//        std::queue<string>subkeys;
+//        while(sub_key.find("\\")!=string::npos){
+//            slash=sub_key.find("\\");
+//            string temp=sub_key.substr(0,slash);
+//            subkeys.push(temp);
+//            sub_key.erase(0,slash+1);
 //        }
-        ///////////////////////////////////////////
-//        result = RegDeleteValue( hkTest, L"MojaWartość" );
-//        if( result == ERROR_SUCCESS )
-//             qDebug()<<"Usunieto wartosc";
-//        result = RegDeleteKey( hkSoftware, L"test" ); // usuń klucz "test"
-//        if( result == ERROR_SUCCESS )
-//             qDebug()<<"Usunieto klucz\n";
-//    }
+//        subkeys.push(sub_key);
+//        while(!subkeys.empty()){
+//            qDebug()<<subkeys.front().c_str();
+//            subkeys.pop();
+//        }
+
+
+//        HKEY key;
+//        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
+//            qDebug()<<"Otworzono";
+//        }
+
+
+
+        //QRegistry reg(true);
+        //auto key=reg.get_one_key()
+        /////////////////////////////////
+    //    HKEY hkSoftware;
+    //    LONG result;
+    //    result = RegOpenKeyEx( HKEY_LOCAL_MACHINE, L"SOFTWARE", 0, KEY_ALL_ACCESS, & hkSoftware );
+    //    if( result == ERROR_SUCCESS ){
+    //        qDebug()<<"Otworzono klucz";
+    //        HKEY hkTest;
+    //        DWORD dwDisp;
+    //        result = RegCreateKeyEx( hkSoftware, L"test", 0, NULL, REG_OPTION_NON_VOLATILE,
+    //        KEY_ALL_ACCESS, NULL, & hkTest, & dwDisp );
+    //        if( result == ERROR_SUCCESS )
+    //        if( dwDisp == REG_CREATED_NEW_KEY )
+    //            qDebug()<<"Stworzono";
+    //        else if( dwDisp == REG_OPENED_EXISTING_KEY )
+    //            qDebug()<<"Otworzono";
+    //        wchar_t buf[ 20 ];
+    //        lstrcpy( buf, L"Jakiś tam tekst" );
+    //        result = RegSetValueEx( hkTest, L"MojaWartość", 0, REG_SZ,( LPBYTE ) buf, lstrlen( buf ) + 1 );
+    //        if( result == ERROR_SUCCESS )
+    //            qDebug()<<"Ustawiono";
+    //        char buf2[ 21 ];
+    //        DWORD dwBufSize = 20;
+    //        DWORD dwRegsz = REG_SZ;
+    //        result = RegQueryValueEx( hkTest, L"MojaWartość", NULL, & dwRegsz,( LPBYTE ) buf, & dwBufSize );
+    //        if( result == ERROR_SUCCESS ) {
+    //            buf2[ 20 ] = '\0';
+    //            qDebug()<<"zapis"<<buf2;
+    //        }
+            ///////////////////////////////////////////
+    //        result = RegDeleteValue( hkTest, L"MojaWartość" );
+    //        if( result == ERROR_SUCCESS )
+    //             qDebug()<<"Usunieto wartosc";
+    //        result = RegDeleteKey( hkSoftware, L"test" ); // usuń klucz "test"
+    //        if( result == ERROR_SUCCESS )
+    //             qDebug()<<"Usunieto klucz\n";
+    //    }
+    }catch (const char * exc) {
+        qDebug()<<"Error "<<exc;
+    }
 }

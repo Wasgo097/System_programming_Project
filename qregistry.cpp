@@ -19,7 +19,6 @@ std::shared_ptr<std::list<std::shared_ptr<RegField> > > QRegistry::get_full_regi
 }
 std::shared_ptr<std::list<std::shared_ptr<RegField>>> QRegistry::get_one_key(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, std::vector<string> &subKeys){
     one_key.reset(new std::list<std::shared_ptr<RegField>>());
-
 }
 BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
     HKEY hSubKey;
