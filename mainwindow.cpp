@@ -59,9 +59,11 @@ void MainWindow::on_btn_login_clicked(){
         if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
             qDebug()<<"Poprawne passy, zalogowano "<<nick.c_str()<<" "<<pass.c_str();
             if(Connect_socket()){
+                string fullmess="login|"+nick+"|"+pass+"\r\n";
+                _socket_mtx->lock();
+                _socket->write(fullmess.c_str());
+                _socket_mtx->unlock();
                 connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
-                _login_status=true;
-                disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
             }
             else{
                 QMessageBox msg(this);
@@ -102,10 +104,13 @@ void MainWindow::on_btn_registration_clicked(){
             std::regex nick_regex("[\\w]{5,}");
             std::regex pass_regex("[\\w !@#$%&*_]{6,}");
             if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
-                qDebug()<<"Poprawme passy, zarejestrowano "<<nick.c_str()<<" "<<pass.c_str();
+                //qDebug()<<"Poprawme passy, zarejestrowano "<<nick.c_str()<<" "<<pass.c_str();
                 if(Connect_socket()){
+                    string fullmess="reg|"+nick+"|"+pass+"\r\n";
+                    _socket_mtx->lock();
+                    _socket->write(fullmess.c_str());
+                    _socket_mtx->unlock();
                     connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
-                    disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
                 }
                 else{
                     QMessageBox msg(this);
@@ -189,14 +194,64 @@ void MainWindow::on_full_archive_clicked(){
     }
 }
 void MainWindow::read_log_in(){
-    while(_socket->canReadLine()){
-        ui->output->append(_socket->readLine().trimmed());
+    _socket_mtx->lock();
+    if(_socket->canReadLine()){
+        try {
+            QString read=_socket->readLine().trimmed();
+            auto list=read.split('|');
+            if(list[0]=="login"&&list[1]=="correct"){
+                _login_status=true;
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Information);
+                msg.setText("Udało się zalogować");
+                msg.setWindowTitle("Logowanie");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
+            }
+            else{
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Information);
+                msg.setText("Nie udało się zalogować");
+                msg.setWindowTitle("Logowanie");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
+            }
+            disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
+        } catch (const char * exc) {
+            qDebug()<<exc;
+        }
     }
+    _socket_mtx->unlock();
 }
 void MainWindow::read_sign_in(){
-    while(_socket->canReadLine()){
-        ui->output->append(_socket->readLine().trimmed());
+    _socket_mtx->lock();
+    if(_socket->canReadLine()){
+        try {
+            QString read=_socket->readLine().trimmed();
+            auto list=read.split('|');
+            if(list[0]=="reg"&&list[1]=="correct"){
+                _login_status=true;
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Information);
+                msg.setText("Udało się zarejestrować");
+                msg.setWindowTitle("Rejestracja");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
+            }
+            else{
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Information);
+                msg.setText("Nie udało się zarejestrować");
+                msg.setWindowTitle("Rejestracja");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
+            }
+            disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
+        } catch (const char * exc) {
+            qDebug()<<exc;
+        }
     }
+    _socket_mtx->unlock();
 }
 void MainWindow::read_register_save(){
     while(_socket->canReadLine()){
