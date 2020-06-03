@@ -310,7 +310,7 @@ void MainWindow::on_one_archive_clicked(){
             qDebug()<<"Otworzono";
         }
         if (RegQueryInfoKey(hsubkey, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
-            throw"exc4 search info about key";
+            throw"Nie przeszukano";
         }
         else{
             qDebug()<<"Wydobyto info";
