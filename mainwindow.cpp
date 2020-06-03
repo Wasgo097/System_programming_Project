@@ -310,7 +310,6 @@ void MainWindow::on_one_archive_clicked(){
         for(auto&x:*registry){
             qDebug()<<QString::fromStdString((string)*x);
         }
-
 //        HKEY key;
 //        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
 //            qDebug()<<"Otworzono";
