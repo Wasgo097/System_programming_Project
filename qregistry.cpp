@@ -17,9 +17,6 @@ std::shared_ptr<std::list<std::shared_ptr<RegField> > > QRegistry::get_full_regi
     TraverseRegistry(hKey,fullKeyName,subKey,flags);
     return full_registry;
 }
-std::shared_ptr<std::list<std::shared_ptr<RegField>>> QRegistry::get_one_key(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, std::vector<string> &subKeys){
-    one_key.reset(new std::list<std::shared_ptr<RegField>>());
-}
 BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
     HKEY hSubKey;
     BOOL recursive = flags[0];
@@ -141,79 +138,6 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         row->type(2);
         row->value(svalue);
         full_registry->push_back(row);
-        break;
-    case REG_DWORD_BIG_ENDIAN: /* 5:  A 32-bit number in big-endian format. */
-    case REG_LINK: /* 6: A Unicode symbolic link. */
-    case REG_NONE: /* 0: No defined value type. */
-    case REG_RESOURCE_LIST: /* 8: A device-driver resource list. */
-    default: //_tprintf(_T(" ** Cannot display value of type: %d. Exercise for reader\n"), valueType);
-        if(log_on)
-            str<<"exc2 unknow type of value"<<std::endl;
-        return false;
-    }
-    return TRUE;
-}
-WINBOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWORD valueLen, LPTSTR fullKeyName, std::shared_ptr<std::list<std::shared_ptr<RegField>>>& output){
-    LPBYTE pV = value;
-    QString qkey=QString::fromWCharArray(fullKeyName);
-    string skey=qkey.toStdString();
-    unsigned long i;
-    int namesize=wcslen(valueName);
-    if(namesize==0){
-        if(log_on)
-            str<<"exc1 value without name"<<std::endl;
-        return false;
-    }
-    string name="";
-    for(int i=0;i<namesize;i++)
-        name+=(char)valueName[i];
-    std::shared_ptr<RegField> row(new RegField());
-    row->key(skey);
-    if(log_on)
-        str<<skey<<std::endl;
-    row->value_name(name);
-    if(log_on)
-        str<<name<<":"<<std::endl;
-    string svalue;
-    std::stringstream sstream;
-    switch (valueType) {
-    case REG_FULL_RESOURCE_DESCRIPTOR: /* 9: Resource list in the hardware description */
-    case REG_BINARY: /*  3: Binary data in any form. */
-        if(log_on)
-            str<<"bin "<<std::endl;
-        for (i = 0; i < valueLen; i++, pV++){
-            sstream<<std::hex<<(unsigned int)*pV<<" ";
-        }
-        svalue=sstream.str();
-        if(log_on)
-            str<<"val : "<<svalue<<std::endl;
-        row->type(1);
-        row->value(svalue);
-        output->push_back(row);
-        break;
-    case REG_DWORD: /* 4: A 32-bit number. */
-
-        if(log_on)
-            str<<"dword "<<std::endl;
-        svalue=std::to_string((DWORD)*value);
-        if(log_on)
-            str<<"val : "<<svalue<<std::endl;
-        row->type(3);
-        row->value(svalue);
-        output->push_back(row);
-        break;
-    case REG_EXPAND_SZ: /* 2: null-terminated string with unexpanded references to environment variables (for example, “%PATH%”). */
-    case REG_MULTI_SZ: /* 7: An array of null-terminated strings, terminated by two null characters. */
-    case REG_SZ: /* 1: A null-terminated string. */
-        if(log_on)
-            str<<"str "<<std::endl;
-        qkey=QString::fromWCharArray((LPTSTR)value);
-        svalue=qkey.toStdString();
-        if(log_on)
-            str<<"val : "<<svalue<<std::endl;
-        row->type(2);
-        row->value(svalue);
-        output->push_back(row);
         break;
     case REG_DWORD_BIG_ENDIAN: /* 5:  A 32-bit number in big-endian format. */
     case REG_LINK: /* 6: A Unicode symbolic link. */

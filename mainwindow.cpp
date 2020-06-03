@@ -279,64 +279,38 @@ void MainWindow::on_Log_out_clicked(){
     }
 }
 void MainWindow::on_one_archive_clicked(){
+    wchar_t* wsubkey=nullptr;
+    wchar_t* wmainkey=nullptr;
     try {
-        QString original=ui->key->text();
-        string stdoriginal=original.toStdString();
-        size_t slash=stdoriginal.find("\\");
-        string main_key=stdoriginal.substr(0,slash);
-        string sub_key=stdoriginal.substr(slash+1);
-        std::shared_ptr<std::list<std::shared_ptr<RegField>>> registry(new std::list<std::shared_ptr<RegField>>());
-        //qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
-        HKEY hmainkey;
-        HKEY hsubkey;
-        DWORD valueType, index;
-        DWORD numSubKeys, maxSubKeyLen, numValues, maxValueNameLen, maxValueLen;
-        DWORD subKeyNameLen, valueNameLen, valueLen;
-        FILETIME lastWriteTime;
-        LPTSTR subKeyName, valueName;
-        LPBYTE value;
-        TCHAR fullSubKeyName[MAX_PATH + 1];
-        wchar_t* wsubkey=new wchar_t[sub_key.length()+1];
-        if(stdoriginal[5]=='L')hmainkey=HKEY_LOCAL_MACHINE;
-        else hmainkey=HKEY_USERS;
-        std::wstring tempwstr(sub_key.begin(),sub_key.end());
-        wcscpy(wsubkey,tempwstr.c_str());
-        wsubkey[sub_key.length()]='\0';
-        //qDebug()<<wsubkey<<" "<<tempwstr.c_str();
-        if(RegOpenKeyEx(hmainkey,wsubkey,0,KEY_ALL_ACCESS,&hsubkey)!=ERROR_SUCCESS){
-            throw "Nie otworzono";
-        }
-        else{
-            qDebug()<<"Otworzono";
-        }
-        if (RegQueryInfoKey(hsubkey, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
-            throw"Nie przeszukano";
-        }
-        else{
-            qDebug()<<"Wydobyto info";
-        }
-        subKeyName =(LPTSTR) malloc(TSIZE * (maxSubKeyLen + 1));   /* size in bytes */
-        valueName =(LPTSTR) malloc(TSIZE * (maxValueNameLen + 1));
-        value =(LPBYTE) malloc(maxValueLen);      /* size in bytes */
-        /*First pass for key-value pairs.
-            Important assumption: No one edits the registry under this subkey
-            during this loop. Doing so could change add new values */
-        swprintf_s(fullSubKeyName, _T("%s\\%s"), original.toStdWString().c_str(), subKeyName);
-        for (index = 0; index < numValues; index++) {
-            valueNameLen = maxValueNameLen + 1; /* A very common bug is to forget to set */
-            valueLen = maxValueLen + 1;     /* these values; both are in/out params  */
-            RegEnumValue(hsubkey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
-            WriteValue(valueName, valueType, value, valueLen,fullSubKeyName,registry);
-            /*  If you wanted to change a value, this would be the place to do it.
-                    RegSetValueEx(hSubKey, valueName, 0, valueType, pNewValue, NewValueSize); */
-        }
-        free(subKeyName);
-        free(valueName);
-        free(value);
-        RegCloseKey(hsubkey);
-        for(auto&x:*registry){
-            qDebug()<<QString::fromStdString((string)*x);
-        }
+//        QString original=ui->key->text();
+//        string stdoriginal=original.toStdString();
+//        size_t slash=stdoriginal.find("\\");
+//        string main_key=stdoriginal.substr(0,slash);
+//        string sub_key=stdoriginal.substr(slash+1);
+//        QRegistry reg(true);
+//        //qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
+//        HKEY hmainkey;
+//        wsubkey=new wchar_t[sub_key.length()+1];
+//        wmainkey=new wchar_t[main_key.length()+1];
+//        if(stdoriginal[5]=='L'){
+//            hmainkey=HKEY_LOCAL_MACHINE;
+//        }
+//        else{
+//            hmainkey=HKEY_USERS;
+//        }
+//        QString::fromStdString(main_key).toStdWString().c_str();
+//        std::wstring tempwsubkey(sub_key.begin(),sub_key.end());
+//        wcscpy(wsubkey,tempwsubkey.c_str());
+//        wsubkey[sub_key.length()]='\0';
+//        std::wstring tempwmainkey(main_key.begin(),main_key.end());
+//        wcscpy(wmainkey,tempwmainkey.c_str());
+//        wsubkey[tempwmainkey.length()]='\0';
+//        //auto registry=reg.get_one_key(hmainkey,wmainkey,wsubkey);
+//        auto registry=reg.get_one_key(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",L"SOFTWARE\\hejo\\");
+//        for(auto&x:*registry){
+//            qDebug()<<QString::fromStdString((string)*x);
+//        }
+
 //        tempwstr.copy(wsubkey,tempwstr.length());
 //        wsubkey[tempwstr.length()]='\0';
 //        int x=5+2;
@@ -356,10 +330,10 @@ void MainWindow::on_one_archive_clicked(){
 //        }
 
 
-//        HKEY key;
-//        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
-//            qDebug()<<"Otworzono";
-//        }
+        HKEY key;
+        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
+            qDebug()<<"Otworzono";
+        }
 
 
 
@@ -404,4 +378,6 @@ void MainWindow::on_one_archive_clicked(){
     }catch (const char * exc) {
         qDebug()<<"Error "<<exc;
     }
+    if(wsubkey!=nullptr) delete []  wsubkey;
+    if(wmainkey!=nullptr) delete []  wmainkey;
 }

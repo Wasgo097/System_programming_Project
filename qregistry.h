@@ -14,82 +14,101 @@ class MainWindow;
 #define TSIZE sizeof (TCHAR)
 class QRegistry{
     bool log_on;
-    //MainWindow * window;
     std::fstream str;
     std::shared_ptr<std::list<std::shared_ptr<RegField>>> full_registry;
-    std::shared_ptr<std::list<std::shared_ptr<RegField>>> one_key;
 public:
     QRegistry(bool log);
     ~QRegistry();
     std::shared_ptr<std::list<std::shared_ptr<RegField>>> get_full_registry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags);
-    std::shared_ptr<std::list<std::shared_ptr<RegField>>> get_one_key(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey,std::vector<string>&subKeys);
-private:
-    BOOL WriteValue(LPTSTR valueName, DWORD valueType,	LPBYTE value, DWORD valueLen,LPTSTR fullKeyName);
-    BOOL WriteValue(LPTSTR valueName, DWORD valueType,	LPBYTE value, DWORD valueLen,LPTSTR fullKeyName,std::shared_ptr<std::list<std::shared_ptr<RegField>>>& output);
-    BOOL WriteSubKey(LPTSTR keyName, LPTSTR subKeyName);
-    BOOL TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags);
-    BOOL FindKey(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, BOOL next,std::queue<string>&subKeys){
-        std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp(new std::list<std::shared_ptr<RegField>>);
-        HKEY hSubKey;
+    std::shared_ptr<std::list<std::shared_ptr<RegField>>> get_one_key(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey){
+        std::shared_ptr<std::list<std::shared_ptr<RegField>>> registry(new std::list<std::shared_ptr<RegField>>());
+        HKEY hsubkey;
         DWORD valueType, index;
         DWORD numSubKeys, maxSubKeyLen, numValues, maxValueNameLen, maxValueLen;
-        DWORD subKeyNameLen, valueNameLen, valueLen;
+        DWORD valueNameLen, valueLen;
         FILETIME lastWriteTime;
         LPTSTR subKeyName, valueName;
         LPBYTE value;
-        BOOL flag;
-        // Having a large array such as fullSubKeyName on the stack is a bad idea or, if you prefer, an extemely poor programming practice, even a crime (I plead no contest)
-        /* 1) It can consume lots of space as you traverse the directory
-              * 2) You risk a stack overflow, which is a security risk
-              * 3) You cannot deal with long paths (> MAX_PATH), using the \\?\ prefix
-              * SUGGESTION: See lsW (Chapter 3) for a better implementation and fix this program accordingly.
-              */
         TCHAR fullSubKeyName[MAX_PATH + 1];
-        /* Open up the key handle. */
-        if (RegOpenKeyEx(hKey, subKey, 0, KEY_READ, &hSubKey) != ERROR_SUCCESS){
-            if(log_on)
-            str<<"exc3 cannot open key"<<std::endl;
-            return false;
+        if(RegOpenKeyEx(hKey,subKey,0,KEY_ALL_ACCESS,&hsubkey)!=ERROR_SUCCESS){
+            throw "Nie otworzono";
         }
-        /*  Find max size info regarding the key and allocate storage */
-        if (RegQueryInfoKey(hSubKey, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
-            if(log_on)
-            str<<"exc4 search info about key"<<std::endl;
-            return false;
+        else{
+            qDebug()<<"Otworzono";
         }
-        subKeyName =(LPTSTR) malloc(TSIZE * (maxSubKeyLen + 1));   /* size in bytes */
+        if (RegQueryInfoKey(hsubkey, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
+            throw"Nie przeszukano";
+        }
+        else{
+            qDebug()<<"Wydobyto info";
+        }
+        subKeyName =(LPTSTR) malloc(TSIZE * (maxSubKeyLen + 1));
         valueName =(LPTSTR) malloc(TSIZE * (maxValueNameLen + 1));
-        value =(LPBYTE) malloc(maxValueLen);      /* size in bytes */
-        /*First pass for key-value pairs.
-            Important assumption: No one edits the registry under this subkey
-            during this loop. Doing so could change add new values */
+        value =(LPBYTE) malloc(maxValueLen);
         swprintf_s(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
-        if(!next){
-            for (index = 0; index < numValues; index++) {
-                valueNameLen = maxValueNameLen + 1; /* A very common bug is to forget to set */
-                valueLen = maxValueLen + 1;     /* these values; both are in/out params  */
-                RegEnumValue(hSubKey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
-                WriteValue(valueName, valueType, value, valueLen,fullSubKeyName,temp);
-                /*  If you wanted to change a value, this would be the place to do it.
-                        RegSetValueEx(hSubKey, valueName, 0, valueType, pNewValue, NewValueSize); */
-            }
-        }
-        //Second pass for subkeys
-        for (index = 0; index < numSubKeys; index++) {
-            subKeyNameLen = maxSubKeyLen + 1;
-            RegEnumKeyEx(hSubKey, index, subKeyName, &subKeyNameLen, NULL,NULL, NULL, &lastWriteTime);
-            //WriteSubKey(fullKeyName, subKeyName);
-            /*  Display subkey components if -R is specified */
-            if (next) {
-                swprintf_s(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
-                FindKey(hSubKey, fullSubKeyName, subKeyName, flag,subKeys);
-            }
+        for (index = 0; index < numValues; index++) {
+            valueNameLen = maxValueNameLen + 1;
+            valueLen = maxValueLen + 1;
+            RegEnumValue(hsubkey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
+            WriteValue(valueName, valueType, value, valueLen,fullSubKeyName,registry);
         }
         free(subKeyName);
         free(valueName);
         free(value);
-        RegCloseKey(hSubKey);
-        return true;
+        RegCloseKey(hsubkey);
+        return registry;
     }
+private:
+    BOOL WriteValue(LPTSTR valueName, DWORD valueType,	LPBYTE value, DWORD valueLen,LPTSTR fullKeyName);
+    BOOL WriteValue(LPTSTR valueName, DWORD valueType,	LPBYTE value, DWORD valueLen,LPTSTR fullKeyName,std::shared_ptr<std::list<std::shared_ptr<RegField>>>& key){
+        LPBYTE pV = value;
+        QString qkey=QString::fromWCharArray(fullKeyName);
+        string skey=qkey.toStdString();
+        unsigned long i;
+        int namesize=wcslen(valueName);
+        if(namesize==0){
+            return false;
+        }
+        string name="";
+        for(int i=0;i<namesize;i++)
+            name+=(char)valueName[i];
+        std::shared_ptr<RegField> row(new RegField());
+        row->key(skey);
+        row->value_name(name);
+        string svalue;
+        std::stringstream sstream;
+        switch (valueType) {
+        case REG_FULL_RESOURCE_DESCRIPTOR:
+        case REG_BINARY:
+            for (i = 0; i < valueLen; i++, pV++){
+                sstream<<std::hex<<(unsigned int)*pV<<" ";
+            }
+            svalue=sstream.str();
+            row->type(1);
+            row->value(svalue);
+            key->push_back(row);
+            break;
+        case REG_DWORD:
+            svalue=std::to_string((DWORD)*value);
+            row->type(3);
+            row->value(svalue);
+            key->push_back(row);
+            break;
+        case REG_EXPAND_SZ:
+        case REG_MULTI_SZ:
+        case REG_SZ:
+            qkey=QString::fromWCharArray((LPTSTR)value);
+            svalue=qkey.toStdString();
+            row->type(2);
+            row->value(svalue);
+            key->push_back(row);
+            break;
+        default:
+            return FALSE;
+        }
+        return TRUE;
+    }
+    BOOL WriteSubKey(LPTSTR keyName, LPTSTR subKeyName);
+    BOOL TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags);
 };
 #endif // QREGISTRY_H
