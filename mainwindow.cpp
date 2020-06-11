@@ -384,44 +384,49 @@ void MainWindow::on_Log_out_clicked(){
     }
 }
 void MainWindow::on_one_archive_clicked(){
-    wchar_t* wsubkey=nullptr;
-    wchar_t* wmainkey=nullptr;
-    try {
-        QString original=ui->key->text();
-        string stdoriginal=original.toStdString();
-        size_t slash=stdoriginal.find("\\");
-        string main_key=stdoriginal.substr(0,slash);
-        string sub_key=stdoriginal.substr(slash+1);
-        QRegistry reg(true);
-        qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
-        HKEY hmainkey;
-        wsubkey=new wchar_t[sub_key.length()+1];
-        wmainkey=new wchar_t[main_key.length()+1];
-        if(stdoriginal[5]=='L')
-            hmainkey=HKEY_LOCAL_MACHINE;
-        else
-            hmainkey=HKEY_USERS;
-        //QString::fromStdString(main_key).toStdWString().c_str();
-        std::wstring tempwsubkey(sub_key.begin(),sub_key.end());
-        wcscpy(wsubkey,tempwsubkey.c_str());
-        //wsubkey[sub_key.length()]='\0';
-        std::wstring tempwmainkey(main_key.begin(),main_key.end());
-        wcscpy(wmainkey,tempwmainkey.c_str());
-        //wsubkey[tempwmainkey.length()]='\0';
-        auto registry=reg.get_one_key(hmainkey,wmainkey,wsubkey);
-        //auto registry=reg.get_one_key(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",L"SOFTWARE\\test");
-        for(auto&x:*registry){
-            qDebug()<<QString::fromStdString((string)*x);
+    if(_login_status){
+        wchar_t* wsubkey=nullptr;
+        wchar_t* wmainkey=nullptr;
+        try {
+            QString original=ui->key->text();
+            string stdoriginal=original.toStdString();
+            size_t slash=stdoriginal.find("\\");
+            string main_key=stdoriginal.substr(0,slash);
+            string sub_key=stdoriginal.substr(slash+1);
+            QRegistry reg(true);
+            qDebug()<<original<<" "<<main_key.c_str()<<" "<<sub_key.c_str();
+            HKEY hmainkey;
+            wsubkey=new wchar_t[sub_key.length()+1];
+            wmainkey=new wchar_t[main_key.length()+1];
+            if(stdoriginal[5]=='L')
+                hmainkey=HKEY_LOCAL_MACHINE;
+            else
+                hmainkey=HKEY_USERS;
+            std::wstring tempwsubkey(sub_key.begin(),sub_key.end());
+            wcscpy(wsubkey,tempwsubkey.c_str());
+            std::wstring tempwmainkey(main_key.begin(),main_key.end());
+            wcscpy(wmainkey,tempwmainkey.c_str());
+            auto registry=reg.get_one_key(hmainkey,wmainkey,wsubkey);
+            _socket_mtx->lock();
+            //string begin="registry|"+std::to_string(temp->size())+"\r'n";
+            //socket->write(begin.c_str());
+            for(auto&x:*registry){
+                x->key(stdoriginal);
+                qDebug()<<QString::fromStdString((string)*x);
+                //string tempp="registry|"+(string)*x+"\r\n";
+                //socket->write(tempp.c_str());
+            }
+            _socket_mtx->unlock();
+    //        HKEY key;
+    //        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
+    //            qDebug()<<"Otworzono";
+    //        }
+        }catch (const char * exc) {
+            qDebug()<<"Error "<<exc;
         }
-//        HKEY key;
-//        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
-//            qDebug()<<"Otworzono";
-//        }
-    }catch (const char * exc) {
-        qDebug()<<"Error "<<exc;
+        if(wsubkey!=nullptr) delete []  wsubkey;
+        if(wmainkey!=nullptr) delete []  wmainkey;
     }
-    if(wsubkey!=nullptr) delete []  wsubkey;
-    if(wmainkey!=nullptr) delete []  wmainkey;
 }
 void MainWindow::on_importrecord_clicked(){
 //    HKEY key;
@@ -437,7 +442,7 @@ void MainWindow::on_importrecord_clicked(){
     qDebug()<<index;
     std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
     //binary 1 string 2 dword 3
-    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","halo",2));
+    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","halabcdefghijklmn",2));
     records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","1113213",1));
     records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba3","321",3));
     records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","halo2",2));
@@ -445,7 +450,7 @@ void MainWindow::on_importrecord_clicked(){
     records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba3","132",3));
     QRegistry reg(false);
     if(reg.Import(records)){
-        qDebug()<<"UDało się";
+        qDebug()<<"Udało się";
     }
     else{
         qDebug()<<"XD";

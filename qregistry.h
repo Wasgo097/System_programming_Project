@@ -56,9 +56,12 @@ public:
                 }
                 else if(field[2]=="2"){
                     type=REG_SZ;
-                    const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
+                    wchar_t buf[255];
+                    lstrcpy(buf,field[3].toStdWString().c_str());
+                    qDebug()<<lstrlen(buf)+1;
+                    //const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
                     if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
-                        if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,field[3].size()*sizeof (wchar_t))==ERROR_SUCCESS)
+                        if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,(LPBYTE)buf,lstrlen(buf)*sizeof (wchar_t))==ERROR_SUCCESS)
                             qDebug()<<"Pikobello";
                         else
                             throw "Zapis";
@@ -69,9 +72,10 @@ public:
                 }
                 else{
                     type=REG_DWORD;
-                    const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
+                    //const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
+                    DWORD data=field[3].toULong();
                     if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
-                        if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,sizeof(DWORD))==ERROR_SUCCESS)
+                        if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,(LPBYTE)&data,sizeof(DWORD))==ERROR_SUCCESS)
                             qDebug()<<"Pikobello";
                         else
                             throw "Zapis";

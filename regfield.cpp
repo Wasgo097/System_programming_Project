@@ -12,7 +12,7 @@ RegField::RegField(string key, string value_name, string value, int type){
 void RegField::reduce_key(){
     string tmp=_key;
     int last_slash=0;
-    for(int i=0;i<tmp.length();i++){
+    for(size_t i=0;i<tmp.length();i++){
         if(tmp[i]=='\\'){
             last_slash=i;
             continue;
