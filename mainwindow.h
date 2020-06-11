@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <regex>
+#include <queue>
 #include <windows.h>
 #include "ui_mainwindow.h"
 #include "full_archive_thr.h"
@@ -37,6 +38,8 @@ private slots:
     void on_tabWidget_2_tabBarClicked(int index);
     void on_Log_out_clicked();
     void on_one_archive_clicked();
+    void on_importrecord_clicked();
+
 public slots:
     //read during send register process
     void read_register_save();

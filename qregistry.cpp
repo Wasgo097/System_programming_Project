@@ -17,6 +17,45 @@ std::shared_ptr<std::list<std::shared_ptr<RegField> > > QRegistry::get_full_regi
     TraverseRegistry(hKey,fullKeyName,subKey,flags);
     return full_registry;
 }
+std::shared_ptr<std::list<std::shared_ptr<RegField>>> QRegistry::get_one_key(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey){
+    std::shared_ptr<std::list<std::shared_ptr<RegField>>> registry(new std::list<std::shared_ptr<RegField>>());
+    HKEY hsubkey;
+    DWORD valueType, index;
+    DWORD numSubKeys, maxSubKeyLen, numValues, maxValueNameLen, maxValueLen;
+    DWORD valueNameLen, valueLen;
+    FILETIME lastWriteTime;
+    LPTSTR subKeyName, valueName;
+    LPBYTE value;
+    TCHAR fullSubKeyName[MAX_PATH + 1];
+    if(RegOpenKeyEx(hKey,subKey,0,KEY_ALL_ACCESS,&hsubkey)!=ERROR_SUCCESS){
+        ReportError(_T("\nCannot open subkey"), 2, TRUE);
+        throw "Nie otworzono";
+    }
+    else{
+        qDebug()<<"Otworzono";
+    }
+    if (RegQueryInfoKey(hsubkey, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
+        throw"Nie przeszukano";
+    }
+    else{
+        qDebug()<<"Wydobyto info";
+    }
+    subKeyName =(LPTSTR) malloc(TSIZE * (maxSubKeyLen + 1));
+    valueName =(LPTSTR) malloc(TSIZE * (maxValueNameLen + 1));
+    value =(LPBYTE) malloc(maxValueLen);
+    swprintf_s(fullSubKeyName, _T("%s\\%s"), fullKeyName, subKeyName);
+    for (index = 0; index < numValues; index++) {
+        valueNameLen = maxValueNameLen + 1;
+        valueLen = maxValueLen + 1;
+        RegEnumValue(hsubkey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
+        WriteValue(valueName, valueType, value, valueLen,fullSubKeyName,registry);
+    }
+    free(subKeyName);
+    free(valueName);
+    free(value);
+    RegCloseKey(hsubkey);
+    return registry;
+}
 BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
     HKEY hSubKey;
     BOOL recursive = flags[0];
@@ -36,13 +75,13 @@ BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, L
     /* Open up the key handle. */
     if (RegOpenKeyEx(hKey, subKey, 0, KEY_READ, &hSubKey) != ERROR_SUCCESS){
         if(log_on)
-        str<<"exc3 cannot open key"<<std::endl;
+            str<<"exc3 cannot open key"<<std::endl;
         return false;
     }
     /*  Find max size info regarding the key and allocate storage */
     if (RegQueryInfoKey(hSubKey, NULL, NULL, NULL, &numSubKeys,&maxSubKeyLen,NULL,&numValues,&maxValueNameLen,&maxValueLen,NULL,&lastWriteTime) != ERROR_SUCCESS){
         if(log_on)
-        str<<"exc4 search info about key"<<std::endl;
+            str<<"exc4 search info about key"<<std::endl;
         return false;
     }
     subKeyName =(LPTSTR) malloc(TSIZE * (maxSubKeyLen + 1));   /* size in bytes */
@@ -147,6 +186,54 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         if(log_on)
             str<<"exc2 unknow type of value"<<std::endl;
         return false;
+    }
+    return TRUE;
+}
+WINBOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWORD valueLen, LPTSTR fullKeyName, std::shared_ptr<std::list<std::shared_ptr<RegField>>> &key){
+    LPBYTE pV = value;
+    QString qkey=QString::fromWCharArray(fullKeyName);
+    string skey=qkey.toStdString();
+    unsigned long i;
+    int namesize=wcslen(valueName);
+    if(namesize==0){
+        return false;
+    }
+    string name="";
+    for(int i=0;i<namesize;i++)
+        name+=(char)valueName[i];
+    std::shared_ptr<RegField> row(new RegField());
+    row->key(skey);
+    row->value_name(name);
+    string svalue;
+    std::stringstream sstream;
+    switch (valueType) {
+    case REG_FULL_RESOURCE_DESCRIPTOR:
+    case REG_BINARY:
+        for (i = 0; i < valueLen; i++, pV++){
+            sstream<<std::hex<<(unsigned int)*pV<<" ";
+        }
+        svalue=sstream.str();
+        row->type(1);
+        row->value(svalue);
+        key->push_back(row);
+        break;
+    case REG_DWORD:
+        svalue=std::to_string((DWORD)*value);
+        row->type(3);
+        row->value(svalue);
+        key->push_back(row);
+        break;
+    case REG_EXPAND_SZ:
+    case REG_MULTI_SZ:
+    case REG_SZ:
+        qkey=QString::fromWCharArray((LPTSTR)value);
+        svalue=qkey.toStdString();
+        row->type(2);
+        row->value(svalue);
+        key->push_back(row);
+        break;
+    default:
+        return FALSE;
     }
     return TRUE;
 }

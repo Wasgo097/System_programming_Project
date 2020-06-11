@@ -27,7 +27,7 @@ void Full_Archive_THR::run() {
             //socket->write(tempp.c_str());
         }
     }
-    connect(socket.get(), &QTcpSocket::readyRead, window, &MainWindow::read_register_save);
+    //connect(socket.get(), &QTcpSocket::readyRead, window, &MainWindow::read_register_save);
     socket_mtx->unlock();
     str.close();
     qDebug()<<"Done";

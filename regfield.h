@@ -28,7 +28,7 @@ public:
     int type()const{        return _type;    }
     void reduce_key();
     bool is_valid();
-    explicit operator string()const{return _key+"||"+_value_name+"||"+std::to_string(_type)+"||"+_value;}
+    explicit operator string()const{return _key+"|"+_value_name+"|"+std::to_string(_type)+"|"+_value;}
     friend std::ostream& operator<<(std::ostream& os, const RegField& dt);
 };
 #endif // REGFIELD_H

@@ -1,6 +1,6 @@
 #include "regfield.h"
 std::ostream& operator<<(std::ostream& os, const RegField& dt){
-    os<<dt._key<<"||"<<dt._value_name<<"||"<<dt._type<<"||"<<dt._value;
+    os<<dt._key<<"|"<<dt._value_name<<"|"<<dt._type<<"|"<<dt._value;
     return os;
 }
 RegField::RegField(string key, string value_name, string value, int type){

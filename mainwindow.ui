@@ -316,6 +316,29 @@ color: rgb(0, 0, 0);</string>
         <attribute name="title">
          <string>Import rejestru</string>
         </attribute>
+        <widget class="QPushButton" name="importrecord">
+         <property name="geometry">
+          <rect>
+           <x>320</x>
+           <y>340</y>
+           <width>80</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Importuj</string>
+         </property>
+        </widget>
+        <widget class="QListWidget" name="recordslist">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>256</width>
+           <height>351</height>
+          </rect>
+         </property>
+        </widget>
        </widget>
       </widget>
      </item>

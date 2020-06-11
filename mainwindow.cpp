@@ -2,6 +2,8 @@
 #include "qregistry.h"
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
+    for(int i=0;i<10;i++)
+        ui->recordslist->addItem(QString::number(i)+" iteam");
     std::fstream str;
     str.open("config");
     if(str.good()){
@@ -401,13 +403,13 @@ void MainWindow::on_one_archive_clicked(){
         else{
             hmainkey=HKEY_USERS;
         }
-        QString::fromStdString(main_key).toStdWString().c_str();
+        //QString::fromStdString(main_key).toStdWString().c_str();
         std::wstring tempwsubkey(sub_key.begin(),sub_key.end());
         wcscpy(wsubkey,tempwsubkey.c_str());
-        wsubkey[sub_key.length()]='\0';
+        //wsubkey[sub_key.length()]='\0';
         std::wstring tempwmainkey(main_key.begin(),main_key.end());
         wcscpy(wmainkey,tempwmainkey.c_str());
-        wsubkey[tempwmainkey.length()]='\0';
+        //wsubkey[tempwmainkey.length()]='\0';
         auto registry=reg.get_one_key(hmainkey,wmainkey,wsubkey);
         //auto registry=reg.get_one_key(HKEY_LOCAL_MACHINE,L"HKEY_LOCAL_MACHINE",L"SOFTWARE\\test");
         for(auto&x:*registry){
@@ -422,4 +424,22 @@ void MainWindow::on_one_archive_clicked(){
     }
     if(wsubkey!=nullptr) delete []  wsubkey;
     if(wmainkey!=nullptr) delete []  wmainkey;
+}
+void MainWindow::on_importrecord_clicked(){
+    int index=ui->recordslist->currentIndex().row();
+    qDebug()<<index;
+    std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
+    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","XDDD",2));
+    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","1113213",1));
+    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","123",3));
+    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","XDDD",2));
+    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","111324",1));
+    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","123",3));
+    QRegistry reg(false);
+    if(reg.Import(records)){
+        qDebug()<<"UDało się";
+    }
+    else{
+        qDebug()<<"XD";
+    }
 }
