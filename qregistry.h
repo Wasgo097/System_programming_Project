@@ -37,28 +37,60 @@ public:
                 qDebug()<<key.c_str()<<" "<<subkey.c_str();
                 HKEY hmainkey,hkey;
                 DWORD type,dwDisp;
-                if(field[2]=="1")
-                    type=REG_BINARY;
-                else if(field[2]=="2")
-                    type=REG_SZ;
-                else
-                    type=REG_DWORD;
                 if(key[5]=='L')
                     hmainkey=HKEY_LOCAL_MACHINE;
                 else
                     hmainkey=HKEY_USERS;
-                const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
-                //qDebug()<<QString::fromWCharArray(wsubkey.c_str());
-                if(RegOpenKeyEx(hmainkey,wsubkey.c_str(),0,KEY_ALL_ACCESS,&hkey)!=ERROR_SUCCESS){
-                //if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
-                    if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,field[3].size())==ERROR_SUCCESS)
-                        qDebug()<<"Pikobello";
+                if(field[2]=="1"){
+                    type=REG_BINARY;
+                    const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
+                    if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
+                        if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,field[3].size()*sizeof (wchar_t))==ERROR_SUCCESS)
+                            qDebug()<<"Pikobello";
+                        else
+                            throw "Zapis";
+                        RegCloseKey(hkey);
+                    }
                     else
-                        throw "Zapis";
-                    RegCloseKey(hkey);
+                        throw "Otwarcie";
                 }
-                else
-                    throw "Otwarcie";
+                else if(field[2]=="2"){
+                    type=REG_SZ;
+                    const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
+                    if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
+                        if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,field[3].size()*sizeof (wchar_t))==ERROR_SUCCESS)
+                            qDebug()<<"Pikobello";
+                        else
+                            throw "Zapis";
+                        RegCloseKey(hkey);
+                    }
+                    else
+                        throw "Otwarcie";
+                }
+                else{
+                    type=REG_DWORD;
+                    const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
+                    if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
+                        if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,sizeof(DWORD))==ERROR_SUCCESS)
+                            qDebug()<<"Pikobello";
+                        else
+                            throw "Zapis";
+                        RegCloseKey(hkey);
+                    }
+                    else
+                        throw "Otwarcie";
+                }
+                //qDebug()<<QString::fromWCharArray(wsubkey.c_str());
+                //if(RegOpenKeyEx(hmainkey,wsubkey.c_str(),0,KEY_ALL_ACCESS,&hkey)!=ERROR_SUCCESS){
+//                if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
+//                    if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,field[3].size())==ERROR_SUCCESS)
+//                        qDebug()<<"Pikobello";
+//                    else
+//                        throw "Zapis";
+//                    RegCloseKey(hkey);
+//                }
+//                else
+//                    throw "Otwarcie";
             } catch (const char * exc) {
                 qDebug()<<exc;
                 flag=false;
