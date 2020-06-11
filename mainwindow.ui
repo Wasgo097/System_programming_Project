@@ -34,7 +34,7 @@
 color: rgb(0, 0, 0);</string>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -336,6 +336,29 @@ color: rgb(0, 0, 0);</string>
            <y>10</y>
            <width>256</width>
            <height>351</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_8">
+         <property name="geometry">
+          <rect>
+           <x>290</x>
+           <y>10</y>
+           <width>101</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Output</string>
+         </property>
+        </widget>
+        <widget class="QTextBrowser" name="output_2">
+         <property name="geometry">
+          <rect>
+           <x>290</x>
+           <y>40</y>
+           <width>381</width>
+           <height>111</height>
           </rect>
          </property>
         </widget>

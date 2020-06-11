@@ -97,7 +97,7 @@ BOOL QRegistry::TraverseRegistry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, L
         RegEnumValue(hSubKey, index, valueName, &valueNameLen, NULL, &valueType, value, &valueLen);
         WriteValue(valueName, valueType, value, valueLen,fullSubKeyName);
         /*  If you wanted to change a value, this would be the place to do it.
-                RegSetValueEx(hSubKey, valueName, 0, valueType, pNewValue, NewValueSize); */
+                RegSetValueEx(hSubKey, valueName, 0, valueType, pNewValue, NewValueSize);*/
     }
     //Second pass for subkeys
     for (index = 0; index < numSubKeys; index++) {
@@ -155,7 +155,6 @@ BOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, DWOR
         full_registry->push_back(row);
         break;
     case REG_DWORD: /* 4: A 32-bit number. */
-
         if(log_on)
             str<<"dword "<<std::endl;
         svalue=std::to_string((DWORD)*value);

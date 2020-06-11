@@ -24,11 +24,44 @@ public:
     BOOL Import(std::shared_ptr<std::queue<std::shared_ptr<RegField>>> & keys){
         bool flag=true;
         while(!keys->empty()){
-            RegField actual=*keys->front();
-            QString temp=QString::fromStdString((string)actual);
-            QStringList field=temp.split("|");
-            qDebug()<<field;
-            keys->pop();
+            try {
+                RegField actual=*keys->front();
+                QString temp=QString::fromStdString((string)actual);
+                QStringList field=temp.split("|");
+                qDebug()<<field;
+                keys->pop();
+                //
+                size_t slash=field[0].toStdString().find("\\");
+                string key=field[0].toStdString().substr(0,slash),subkey=field[0].toStdString().substr(slash+1);
+                std::wstring wsubkey(subkey.begin(),subkey.end());
+                qDebug()<<key.c_str()<<" "<<subkey.c_str();
+                HKEY hmainkey,hkey;
+                DWORD type;
+                if(field[2]=="1")
+                    type=REG_BINARY;
+                else if(field[2]=="2")
+                    type=REG_SZ;
+                else
+                    type=REG_DWORD;
+                if(key[5]=='L')
+                    hmainkey=HKEY_LOCAL_MACHINE;
+                else
+                    hmainkey=HKEY_USERS;
+                const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
+                if(RegOpenKeyEx(hmainkey,wsubkey.c_str(),0,KEY_ALL_ACCESS,&hkey)==ERROR_SUCCESS){
+                    if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,field[3].size())==ERROR_SUCCESS){
+                        qDebug()<<"Pikobello";
+                    }
+                    else{
+                        throw "XD2";
+                    }
+                }
+                else{
+                    throw "XD";
+                }
+            } catch (const char * exc) {
+                qDebug()<<"Upsik "<<exc;
+            }
         }
         return flag;
     }

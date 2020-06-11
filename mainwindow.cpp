@@ -397,12 +397,10 @@ void MainWindow::on_one_archive_clicked(){
         HKEY hmainkey;
         wsubkey=new wchar_t[sub_key.length()+1];
         wmainkey=new wchar_t[main_key.length()+1];
-        if(stdoriginal[5]=='L'){
+        if(stdoriginal[5]=='L')
             hmainkey=HKEY_LOCAL_MACHINE;
-        }
-        else{
+        else
             hmainkey=HKEY_USERS;
-        }
         //QString::fromStdString(main_key).toStdWString().c_str();
         std::wstring tempwsubkey(sub_key.begin(),sub_key.end());
         wcscpy(wsubkey,tempwsubkey.c_str());
