@@ -2,16 +2,17 @@
 #include "qregistry.h"
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
-    for(int i=0;i<10;i++)
-        ui->recordslist->addItem(QString::number(i)+" iteam");
     std::fstream str;
     str.open("config");
+    for(int i=0;i<10;i++)
+        ui->recordslist->addItem(QString::number(i)+" iteam");
     if(str.good()){
         try {
             str>>_ip>>_port;
             str.close();
             _socket_mtx=std::make_shared<std::mutex>();
             _connector=true;
+            _import.reset(new std::queue<std::shared_ptr<RegField>>());
             _login_status=true;//temp
         }
         catch (...) {
@@ -35,7 +36,9 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     }
 }
 MainWindow::~MainWindow(){
-    if(_thr_full_archive->isRunning())_thr_full_archive->wait();
+    if(_thr_full_archive.get()!=nullptr)
+        if(_thr_full_archive->isRunning())
+            _thr_full_archive->wait();
     delete ui;
 }
 void MainWindow::add_to_output(QString txt){
@@ -197,120 +200,89 @@ void MainWindow::on_full_archive_clicked(){
 }
 void MainWindow::read_log_in(){
     _socket_mtx->lock();
-    if(_socket->canReadLine()){
-        try {
-            QString read=_socket->readLine().trimmed();
-            auto list=read.split('|');
-            if(list[0]=="login"&&list[1]=="correct"){
-                _login_status=true;
-                QMessageBox msg(this);
-                msg.setIcon(QMessageBox::Information);
-                msg.setText("Udało się zalogować");
-                msg.setWindowTitle("Logowanie");
-                msg.setStandardButtons(QMessageBox::Ok);
-                msg.exec();
-            }
-            else{
-                QMessageBox msg(this);
-                msg.setIcon(QMessageBox::Information);
-                msg.setText("Nie udało się zalogować");
-                msg.setWindowTitle("Logowanie");
-                msg.setStandardButtons(QMessageBox::Ok);
-                msg.exec();
-            }
-        } catch (const char * exc) {
-            qDebug()<<exc;
+    try {
+        QString read=_socket->readLine().trimmed();
+        auto list=read.split('|');
+        if(list[0]=="login"&&list[1]=="correct"){
+            _login_status=true;
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Udało się zalogować");
+            msg.setWindowTitle("Logowanie");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
+            for(int i=0;i<10;i++)
+                ui->recordslist->addItem(QString::number(i)+" iteam");
         }
+        else{
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Nie udało się zalogować");
+            msg.setWindowTitle("Logowanie");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
+        }
+    }
+    catch (const char * exc) {
+        qDebug()<<exc;
     }
     disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
     _socket_mtx->unlock();
 }
 void MainWindow::read_sign_in(){
     _socket_mtx->lock();
-    if(_socket->canReadLine()){
-        try {
-            QString read=_socket->readLine().trimmed();
-            auto list=read.split('|');
-            if(list[0]=="reg"&&list[1]=="correct"){
-                _login_status=true;
-                QMessageBox msg(this);
-                msg.setIcon(QMessageBox::Information);
-                msg.setText("Udało się zarejestrować");
-                msg.setWindowTitle("Rejestracja");
-                msg.setStandardButtons(QMessageBox::Ok);
-                msg.exec();
-            }
-            else{
-                QMessageBox msg(this);
-                msg.setIcon(QMessageBox::Information);
-                msg.setText("Nie udało się zarejestrować");
-                msg.setWindowTitle("Rejestracja");
-                msg.setStandardButtons(QMessageBox::Ok);
-                msg.exec();
-            }
-        } catch (const char * exc) {
-            qDebug()<<exc;
+    try {
+        QString read=_socket->readLine().trimmed();
+        auto list=read.split('|');
+        if(list[0]=="reg"&&list[1]=="correct"){
+            _login_status=true;
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Udało się zarejestrować");
+            msg.setWindowTitle("Rejestracja");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
         }
+        else{
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Nie udało się zarejestrować");
+            msg.setWindowTitle("Rejestracja");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
+        }
+    } catch (const char * exc) {
+        qDebug()<<exc;
     }
     disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_sign_in);
     _socket_mtx->unlock();
 }
 void MainWindow::read_register_save(){
     _socket_mtx->lock();
-    if(_socket->canReadLine()){
-        try {
-            QString read=_socket->readLine().trimmed();
-            auto list=read.split('|');
-            if(list[0]=="registry"&&list[1]=="correct"){
-                _login_status=true;
-                QMessageBox msg(this);
-                msg.setIcon(QMessageBox::Information);
-                msg.setText("Udało się zarchiwizować dane");
-                msg.setWindowTitle("Archiwizacja");
-                msg.setStandardButtons(QMessageBox::Ok);
-                msg.exec();
-            }
-            else{
-                QMessageBox msg(this);
-                msg.setIcon(QMessageBox::Information);
-                msg.setText("Nie udało się zarchiwizować danych");
-                msg.setWindowTitle("Rejestracja");
-                msg.setStandardButtons(QMessageBox::Ok);
-                msg.exec();
-            }
-        } catch (const char * exc) {
-            qDebug()<<exc;
-        }
-    }
-    disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_register_save);
-    _socket_mtx->unlock();
-}
-void MainWindow::read_register_load(){
-    _socket_mtx->lock();
     try {
-        std::shared_ptr<std::list<std::shared_ptr<RegField>>> temp(new std::list<std::shared_ptr<RegField>>());
-        while(_socket->canReadLine()){
-            QString read=_socket->readLine().trimmed();
-            auto list=read.split('|');
-            if(list[0]=="registry"&&list.size()==5){
-                string _key=list[1].toStdString();
-                string _value_name=list[2].toStdString();
-                int _type=std::stoi(list[3].toStdString());
-                string _value=list[4].toStdString();
-                std::shared_ptr<RegField> row(new RegField(_key,_value_name,_value,_type));
-                temp->push_back(row);
-            }
+        QString read=_socket->readLine().trimmed();
+        auto list=read.split('|');
+        if(list[0]=="registry"&&list[1]=="correct"){
+            _login_status=true;
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Udało się zarchiwizować dane");
+            msg.setWindowTitle("Archiwizacja");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
         }
-        QMessageBox msg(this);
-        msg.setIcon(QMessageBox::Information);
-        msg.setText("Udało się zaimportować dane");
-        msg.setWindowTitle("Archiwizacja");
-        msg.setStandardButtons(QMessageBox::Ok);
-        msg.exec();
+        else{
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Nie udało się zarchiwizować danych");
+            msg.setWindowTitle("Rejestracja");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
+        }
     } catch (const char * exc) {
         qDebug()<<exc;
     }
-    disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_register_load);
+    disconnect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_register_save);
     _socket_mtx->unlock();
 }
 void MainWindow::full_arch_start(){
@@ -332,11 +304,14 @@ void MainWindow::full_arch_end(){
 string MainWindow::get_time_to_send(){
     string temp("");
     QDateTime curr=QDateTime::currentDateTime();
-    temp+=std::to_string(curr.date().month());
+    /*temp+=std::to_string(curr.date().month());
     temp+='_'+std::to_string(curr.date().day());
     temp+='_'+std::to_string(curr.date().year());
     temp+='_'+std::to_string(curr.time().hour());
-    temp+='_'+std::to_string(curr.time().minute());
+    temp+='_'+std::to_string(curr.time().minute());*/
+    temp=std::to_string(curr.date().year());
+    temp+='-'+std::to_string(curr.date().month());
+    temp+='-'+std::to_string(curr.date().day());
     return temp;
 }
 bool MainWindow::Connect_socket(){
@@ -408,7 +383,7 @@ void MainWindow::on_one_archive_clicked(){
             wcscpy(wmainkey,tempwmainkey.c_str());
             auto registry=reg.get_one_key(hmainkey,wmainkey,wsubkey);
             _socket_mtx->lock();
-            //string begin="registry|"+std::to_string(temp->size())+"\r'n";
+            //string begin="registry|"+std::to_string(registry->size())+get_time_to_send()+"\r'n";
             //socket->write(begin.c_str());
             for(auto&x:*registry){
                 x->key(stdoriginal);
@@ -417,6 +392,7 @@ void MainWindow::on_one_archive_clicked(){
                 //socket->write(tempp.c_str());
             }
             _socket_mtx->unlock();
+            connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_register_save);
     //        HKEY key;
     //        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
     //            qDebug()<<"Otworzono";
@@ -430,22 +406,72 @@ void MainWindow::on_one_archive_clicked(){
 }
 void MainWindow::on_importrecord_clicked(){
     if(_login_status){
-        int index=ui->recordslist->currentIndex().row();
-        qDebug()<<index;
-        std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
-        //binary 1 string 2 dword 3
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","halabcdefghijklmn",2));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","2 c0 0 0",1));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba3","321",3));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","halo2",2));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","111324",1));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba3","132",3));
-        QRegistry reg(false);
-        if(reg.Import(records)){
-            qDebug()<<"Udało się";
+//        int index=ui->recordslist->currentIndex().row();
+//        qDebug()<<index;
+        QString temp=ui->recordslist->currentItem()->text();
+        qDebug()<<temp;
+        string mess="registry|get|"+temp.toStdString()+"\r\n";
+        _socket_mtx->lock();
+        _socket->write(mess.c_str());
+        _socket->waitForBytesWritten();
+        _socket->waitForReadyRead();
+        while(_socket->canReadLine()){
+            QString read=_socket->readLine().trimmed();
+            auto list=read.split('|');
+            if(list[0]=="registry"&&list.size()==5){
+                string _key=list[1].toStdString();
+                string _value_name=list[2].toStdString();
+                int _type=std::stoi(list[3].toStdString());
+                string _value=list[4].toStdString();
+                std::shared_ptr<RegField> row(new RegField(_key,_value_name,_value,_type));
+                _import->push(row);
+            }
         }
-        else{
-            qDebug()<<"Nie udalo sie";
+        _socket_mtx->unlock();
+//        std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
+//        //binary 1 string 2 dword 3
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","halabcdefghijklmn",2));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","2 c0 0 0",1));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba3","321",3));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","halo2",2));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","111324",1));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba3","132",3));
+        try {
+            QRegistry reg(false);
+            //if(reg.Import(records)){
+            if(reg.Import(_import)){
+                qDebug()<<"Udało się";
+    //            QMessageBox msg(this);
+    //            msg.setIcon(QMessageBox::Information);
+    //            msg.setText("Udało się zaimportować dane");
+    //            msg.setWindowTitle("Archiwizacja");
+    //            msg.setStandardButtons(QMessageBox::Ok);
+    //            msg.exec();
+            }
+            else{
+                qDebug()<<"Nie udalo sie";
+    //            QMessageBox msg(this);
+    //            msg.setIcon(QMessageBox::Information);
+    //            msg.setText("Nie zaimportowano przynajmniej jednego rekordu");
+    //            msg.setWindowTitle("Archiwizacja");
+    //            msg.setStandardButtons(QMessageBox::Ok);
+    //            msg.exec();
+            }
+        } catch (const char * exc) {
+            qDebug()<<exc;
         }
+    }
+}
+void MainWindow::on_tabWidget_currentChanged(int index){
+    if(index==2&&_login_status==true){
+        string mess="date|get\r\n";
+        _socket_mtx->lock();
+        _socket->write(mess.c_str());
+        _socket->waitForBytesWritten();
+        _socket->waitForReadyRead();
+        while(_socket->canReadLine()){
+            ui->recordslist->addItem(_socket->readLine().trimmed());
+        }
+        _socket_mtx->unlock();
     }
 }

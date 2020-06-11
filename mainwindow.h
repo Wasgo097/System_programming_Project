@@ -25,26 +25,25 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void add_to_output(QString txt);
+    string get_time_to_send();
 private slots:
     void on_btn_login_clicked();
     void on_btn_registration_clicked();
     void on_full_archive_clicked();
+    void on_tabWidget_2_tabBarClicked(int index);
+    void on_Log_out_clicked();
+    void on_one_archive_clicked();
+    void on_importrecord_clicked();
     //read during login process
     void read_log_in();
     //read during registration process
     void read_sign_in();
     void full_arch_start();
     void full_arch_end();
-    void on_tabWidget_2_tabBarClicked(int index);
-    void on_Log_out_clicked();
-    void on_one_archive_clicked();
-    void on_importrecord_clicked();
-
+    void on_tabWidget_currentChanged(int index);
 public slots:
     //read during send register process
     void read_register_save();
-    //read during load register process
-    void read_register_load();
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<std::mutex> _socket_mtx;
@@ -58,8 +57,8 @@ private:
     bool _login_status=false;
     string _ip;
     string _port;
+    std::shared_ptr<std::queue<std::shared_ptr<RegField>>> _import;
 private:
-    string get_time_to_send();
     bool Connect_socket();
 };
 #endif // MAINWINDOW_H

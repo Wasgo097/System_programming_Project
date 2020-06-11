@@ -45,10 +45,9 @@ public:
                     type=REG_BINARY;
                     wchar_t buf[255];
                     lstrcpy(buf,field[3].toStdWString().c_str());
-                    qDebug()<<lstrlen(buf)+1;
                     if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
-                        if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,(LPBYTE)buf,field[3].size()*sizeof (wchar_t))==ERROR_SUCCESS)
-                            qDebug()<<"Pikobello";
+                        if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,(LPBYTE)buf,lstrlen(buf)*sizeof (wchar_t))==ERROR_SUCCESS)
+                            qDebug()<<"Done";
                         else
                             throw "Zapis";
                         RegCloseKey(hkey);
@@ -60,10 +59,10 @@ public:
                     type=REG_SZ;
                     wchar_t buf[255];
                     lstrcpy(buf,field[3].toStdWString().c_str());
-                    qDebug()<<lstrlen(buf)+1;
+                    //qDebug()<<lstrlen(buf)+1;
                     if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
                         if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,(LPBYTE)buf,lstrlen(buf)*sizeof (wchar_t))==ERROR_SUCCESS)
-                            qDebug()<<"Pikobello";
+                            qDebug()<<"Done";
                         else
                             throw "Zapis";
                         RegCloseKey(hkey);
@@ -76,7 +75,7 @@ public:
                     DWORD data=field[3].toULong();
                     if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
                         if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,(LPBYTE)&data,sizeof(DWORD))==ERROR_SUCCESS)
-                            qDebug()<<"Pikobello";
+                            qDebug()<<"Done";
                         else
                             throw "Zapis";
                         RegCloseKey(hkey);
@@ -84,17 +83,6 @@ public:
                     else
                         throw "Otwarcie";
                 }
-                //qDebug()<<QString::fromWCharArray(wsubkey.c_str());
-                //if(RegOpenKeyEx(hmainkey,wsubkey.c_str(),0,KEY_ALL_ACCESS,&hkey)!=ERROR_SUCCESS){
-//                if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
-//                    if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,field[3].size())==ERROR_SUCCESS)
-//                        qDebug()<<"Pikobello";
-//                    else
-//                        throw "Zapis";
-//                    RegCloseKey(hkey);
-//                }
-//                else
-//                    throw "Otwarcie";
             } catch (const char * exc) {
                 qDebug()<<exc;
                 flag=false;

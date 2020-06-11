@@ -24,7 +24,6 @@ void RegField::reduce_key(){
     _key=tmp;
 }
 bool RegField::is_valid(){
-    //todo regex for all fields 1-9 a-z A-Z ' ' / . - _
     if(_key.length()<6||_value_name=="")return false;
     else{
         std::regex key_regex("HKEY_(USERS|LOCAL_MACHINE)[\\w \\.-_]{1,}");

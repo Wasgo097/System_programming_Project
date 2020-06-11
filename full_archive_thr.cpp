@@ -23,7 +23,7 @@ void Full_Archive_THR::run() {
         x->reduce_key();
         if(x->is_valid()){
             str<<*x<<std::endl;
-            //string tempp="registry|"+(string)*x+"\r\n";
+            //string tempp="registry|"+(string)*x+window->get_time_to_send()+"\r\n";
             //socket->write(tempp.c_str());
         }
     }
