@@ -36,7 +36,7 @@ public:
                 std::wstring wsubkey(subkey.begin(),subkey.end());
                 qDebug()<<key.c_str()<<" "<<subkey.c_str();
                 HKEY hmainkey,hkey;
-                DWORD type;
+                DWORD type,dwDisp;
                 if(field[2]=="1")
                     type=REG_BINARY;
                 else if(field[2]=="2")
@@ -48,19 +48,20 @@ public:
                 else
                     hmainkey=HKEY_USERS;
                 const unsigned char * data=(unsigned char *)(field[3].toStdString().c_str());
-                if(RegOpenKeyEx(hmainkey,wsubkey.c_str(),0,KEY_ALL_ACCESS,&hkey)==ERROR_SUCCESS){
-                    if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,field[3].size())==ERROR_SUCCESS){
+                //qDebug()<<QString::fromWCharArray(wsubkey.c_str());
+                if(RegOpenKeyEx(hmainkey,wsubkey.c_str(),0,KEY_ALL_ACCESS,&hkey)!=ERROR_SUCCESS){
+                //if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
+                    if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,data,field[3].size())==ERROR_SUCCESS)
                         qDebug()<<"Pikobello";
-                    }
-                    else{
-                        throw "XD2";
-                    }
+                    else
+                        throw "Zapis";
+                    RegCloseKey(hkey);
                 }
-                else{
-                    throw "XD";
-                }
+                else
+                    throw "Otwarcie";
             } catch (const char * exc) {
-                qDebug()<<"Upsik "<<exc;
+                qDebug()<<exc;
+                flag=false;
             }
         }
         return flag;

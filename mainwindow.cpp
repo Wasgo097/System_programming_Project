@@ -424,20 +424,30 @@ void MainWindow::on_one_archive_clicked(){
     if(wmainkey!=nullptr) delete []  wmainkey;
 }
 void MainWindow::on_importrecord_clicked(){
-    int index=ui->recordslist->currentIndex().row();
-    qDebug()<<index;
-    std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
-    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","XDDD",2));
-    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","1113213",1));
-    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","123",3));
-    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","XDDD",2));
-    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","111324",1));
-    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","123",3));
-    QRegistry reg(false);
-    if(reg.Import(records)){
-        qDebug()<<"UDało się";
+    HKEY key;
+    if(RegOpenKeyEx(HKEY_USERS,L"S-1-5-18\\Software\\XD",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
+        qDebug()<<"Otworzono";
+        RegCloseKey(key);
     }
-    else{
-        qDebug()<<"XD";
+    if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\keks\\",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
+        qDebug()<<"Otworzono2";
+        RegCloseKey(key);
     }
+
+//    int index=ui->recordslist->currentIndex().row();
+//    qDebug()<<index;
+//    std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
+//    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","XDDD",2));
+//    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","1113213",1));
+//    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","123",3));
+//    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","XDDD",2));
+//    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","111324",1));
+//    records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","123",3));
+//    QRegistry reg(false);
+//    if(reg.Import(records)){
+//        qDebug()<<"UDało się";
+//    }
+//    else{
+//        qDebug()<<"XD";
+//    }
 }
