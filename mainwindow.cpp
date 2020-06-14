@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "qregistry.h"
+using namespace std::chrono_literals;
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
     std::fstream str;
@@ -41,9 +42,6 @@ MainWindow::~MainWindow(){
     }
     delete ui;
 }
-void MainWindow::add_to_output(QString txt){
-    ui->output->append(txt);
-}
 void MainWindow::on_btn_login_clicked(){
     if(_connector){
         if(_login_status){
@@ -65,6 +63,7 @@ void MainWindow::on_btn_login_clicked(){
                 string fullmess="login|"+nick+"|"+pass;
                 _socket_mtx->lock();
                 _socket->write(fullmess.c_str());
+                _socket->waitForBytesWritten();
                 _socket_mtx->unlock();
                 connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_log_in);
             }
@@ -200,6 +199,8 @@ void MainWindow::read_log_in(){
         QString read=_socket->readLine().trimmed();
         auto list=read.split('|');
         if(list[0]=="login"&&list[1]=="correct"){
+            ui->recordslist->clear();
+            qDebug()<<"clear";
             _login_status=true;
             QMessageBox msg(this);
             msg.setIcon(QMessageBox::Information);
@@ -207,8 +208,6 @@ void MainWindow::read_log_in(){
             msg.setWindowTitle("Logowanie");
             msg.setStandardButtons(QMessageBox::Ok);
             msg.exec();
-//            for(int i=0;i<10;i++)
-//                ui->recordslist->addItem(QString::number(i)+" iteam");
         }
         else{
             QMessageBox msg(this);
@@ -350,6 +349,8 @@ void MainWindow::on_tabWidget_2_tabBarClicked(int index){
 }
 void MainWindow::on_Log_out_clicked(){
     if(_login_status){
+        ui->recordslist->clear();
+        qDebug()<<"clear";
         _socket->write("exit");
         _socket->waitForBytesWritten();
         _socket->close();
@@ -391,12 +392,13 @@ void MainWindow::on_one_archive_clicked(){
             string datatime=get_time_to_send();
             for(auto&x:*registry){
                 x->key(stdoriginal);
-                x->reduce_key();
                 if(x->is_valid()){
                     //qDebug()<<QString::fromStdString((string)*x);
-                    string tempp="registry|"+(string)*x+'|'+datatime;
+                    string tempp="registry|"+(string)*x+'|'+datatime+'|';
+                    qDebug()<<tempp.c_str();
                     _socket->write(tempp.c_str());
                     _socket->waitForBytesWritten();
+                    std::this_thread::sleep_for(100ms);
                 }
             }
             string tempp="done";
@@ -415,7 +417,7 @@ void MainWindow::on_importrecord_clicked(){
     if(_login_status){
         std::shared_ptr<std::queue<std::shared_ptr<RegField>>> import(new std::queue<std::shared_ptr<RegField>>());
         QString temp=ui->recordslist->currentItem()->text();
-        qDebug()<<temp;
+        //qDebug()<<temp;
         string mess="get|"+temp.toStdString();
         _socket_mtx->lock();
         _socket->write(mess.c_str());
@@ -446,7 +448,7 @@ void MainWindow::on_importrecord_clicked(){
             QRegistry reg(false);
             //if(reg.Import(records)){
             if(reg.Import(import)){
-                qDebug()<<"Udało się";
+                qDebug()<<"Udalo się";
     //            QMessageBox msg(this);
     //            msg.setIcon(QMessageBox::Information);
     //            msg.setText("Udało się zaimportować dane");
@@ -469,15 +471,19 @@ void MainWindow::on_importrecord_clicked(){
     }
 }
 void MainWindow::on_tabWidget_currentChanged(int index){
+    ui->recordslist->clear();
+    qDebug()<<"clear";
+    std::this_thread::sleep_for(100ms);
     if(index==2&&_login_status==true){
-        ui->recordslist->clear();
-        string mess="data|get";
-        _socket_mtx->lock();
+        string mess="dateget";
+        //_socket_mtx->lock();
         _socket->write(mess.c_str());
         _socket->waitForBytesWritten();
-        _socket->waitForReadyRead();
-        while(_socket->canReadLine())
-            ui->recordslist->addItem(_socket->readLine().trimmed());
-        _socket_mtx->unlock();
+        while(_socket->waitForReadyRead(3000)){
+            //qDebug()<<"Jestem";
+            QString line=_socket->readLine();
+            ui->recordslist->addItem(line);
+            qDebug()<<line;
+        }
     }
 }

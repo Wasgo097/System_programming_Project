@@ -7,11 +7,14 @@
 #include <QDebug>
 #include <QDateTime>
 #include <mutex>
+#include <iostream>
 #include <fstream>
 #include <memory>
 #include <string>
 #include <regex>
 #include <queue>
+#include <thread>
+#include <chrono>
 #include <windows.h>
 #include "ui_mainwindow.h"
 #include "full_archive_thr.h"
@@ -24,7 +27,6 @@ class MainWindow : public QMainWindow{
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void add_to_output(QString txt);
     string get_time_to_send();
 private slots:
     void on_btn_login_clicked();
