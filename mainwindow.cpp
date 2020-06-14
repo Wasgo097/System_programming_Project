@@ -422,9 +422,8 @@ void MainWindow::on_importrecord_clicked(){
         _socket_mtx->lock();
         _socket->write(mess.c_str());
         _socket->waitForBytesWritten();
-        std::this_thread::sleep_for(100ms);
         while(_socket->waitForReadyRead(3000)){
-            std::this_thread::sleep_for(100ms);
+            std::this_thread::sleep_for(200ms);
             QString read=_socket->readLine().trimmed();
             qDebug()<<read;
             auto list=read.split('|');
@@ -438,11 +437,12 @@ void MainWindow::on_importrecord_clicked(){
             }
         }
         _socket_mtx->unlock();
-        while(!import->empty()){
-            RegField temp=(*import->front());
-            qDebug()<<((string)temp).c_str();
-            import->pop();
-        }
+//        while(!import->empty()){
+//            RegField temp=(*import->front());
+//            qDebug()<<((string)temp).c_str();
+//            import->pop();
+//        }
+
 //        //binary 1 string 2 dword 3
 //        std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
 //        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","hal",2));
@@ -451,30 +451,30 @@ void MainWindow::on_importrecord_clicked(){
 //        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","halo",2));
 //        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","111324",1));
 //        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba3","132231",3));
-//        try {
-//            QRegistry reg(false);
-//            //if(reg.Import(records)){
-//            if(reg.Import(import)){
-//                qDebug()<<"Udalo się";
-//    //            QMessageBox msg(this);
-//    //            msg.setIcon(QMessageBox::Information);
-//    //            msg.setText("Udało się zaimportować dane");
-//    //            msg.setWindowTitle("Archiwizacja");
-//    //            msg.setStandardButtons(QMessageBox::Ok);
-//    //            msg.exec();
-//            }
-//            else{
-//                qDebug()<<"Nie udalo sie";
-//    //            QMessageBox msg(this);
-//    //            msg.setIcon(QMessageBox::Information);
-//    //            msg.setText("Nie zaimportowano przynajmniej jednego rekordu");
-//    //            msg.setWindowTitle("Archiwizacja");
-//    //            msg.setStandardButtons(QMessageBox::Ok);
-//    //            msg.exec();
-//            }
-//        } catch (const char * exc) {
-//            qDebug()<<exc;
-//        }
+       try {
+            QRegistry reg(false);
+            //if(reg.Import(records)){
+            if(reg.Import(import)){
+                qDebug()<<"Udalo się";
+    //            QMessageBox msg(this);
+    //            msg.setIcon(QMessageBox::Information);
+    //            msg.setText("Udało się zaimportować dane");
+    //            msg.setWindowTitle("Archiwizacja");
+    //            msg.setStandardButtons(QMessageBox::Ok);
+    //            msg.exec();
+            }
+            else{
+                qDebug()<<"Nie udalo sie";
+    //            QMessageBox msg(this);
+    //            msg.setIcon(QMessageBox::Information);
+    //            msg.setText("Nie zaimportowano przynajmniej jednego rekordu");
+    //            msg.setWindowTitle("Archiwizacja");
+    //            msg.setStandardButtons(QMessageBox::Ok);
+    //            msg.exec();
+            }
+        } catch (const char * exc) {
+            qDebug()<<exc;
+        }
     }
 }
 void MainWindow::on_tabWidget_currentChanged(int index){
