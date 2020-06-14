@@ -4,8 +4,6 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     ui->setupUi(this);
     std::fstream str;
     str.open("config");
-    for(int i=0;i<10;i++)
-        ui->recordslist->addItem(QString::number(i)+" iteam");
     if(str.good()){
         try {
             str>>_ip>>_port;
@@ -58,13 +56,11 @@ void MainWindow::on_btn_login_clicked(){
             msg.exec();
             return;
         }
-        //login_process
         string nick=ui->log_nick->text().toStdString();
         string pass=ui->log_pass->text().toStdString();
         std::regex nick_regex("[\\w]{5,}");
         std::regex pass_regex("[\\w !@#$%&*_]{6,}");
         if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
-            //qDebug()<<"Poprawne passy, zalogowano "<<nick.c_str()<<" "<<pass.c_str();
             if(Connect_socket()){
                 string fullmess="login|"+nick+"|"+pass;
                 _socket_mtx->lock();
@@ -105,13 +101,11 @@ void MainWindow::on_btn_login_clicked(){
 void MainWindow::on_btn_registration_clicked(){
     if(_connector){
         if(!_login_status){
-            //registration process
             string nick=ui->reg_nick->text().toStdString();
             string pass=ui->reg_pass->text().toStdString();
             std::regex nick_regex("[\\w]{5,}");
             std::regex pass_regex("[\\w !@#$%&*_]{6,}");
             if(std::regex_search(nick,nick_regex)&&std::regex_search(pass,pass_regex)){
-                //qDebug()<<"Poprawme passy, zarejestrowano "<<nick.c_str()<<" "<<pass.c_str();
                 if(Connect_socket()){
                     string fullmess="registration|"+nick+"|"+pass;
                     _socket_mtx->lock();
@@ -237,7 +231,6 @@ void MainWindow::read_sign_in(){
         QString read=_socket->readLine().trimmed();
         auto list=read.split('|');
         if(list[0]=="registration"&&list[1]=="correct"){
-            //_login_status=true;
             QMessageBox msg(this);
             msg.setIcon(QMessageBox::Information);
             msg.setText("Udało się zarejestrować");
@@ -323,11 +316,23 @@ bool MainWindow::Connect_socket(){
         _socket->connectToHost(ip_temp,port_temp);
         if(_socket->waitForConnected()){
             qDebug()<<"Polaczono";
+//            QMessageBox msg(this);
+//            msg.setIcon(QMessageBox::Information);
+//            msg.setText("Udało się połączyć z serwerem");
+//            msg.setWindowTitle("Błąd połączenia");
+//            msg.setStandardButtons(QMessageBox::Ok);
+//            msg.exec();
             _connected=true;
             return true;
         }
         else{
             qDebug()<<"Nie polaczono";
+//            QMessageBox msg(this);
+//            msg.setIcon(QMessageBox::Information);
+//            msg.setText("Nie udało się połączyć z serwerem");
+//            msg.setWindowTitle("Błąd połączenia");
+//            msg.setStandardButtons(QMessageBox::Ok);
+//            msg.exec();
             return false;
         }
     }
@@ -383,25 +388,22 @@ void MainWindow::on_one_archive_clicked(){
             wcscpy(wmainkey,tempwmainkey.c_str());
             auto registry=reg.get_one_key(hmainkey,wmainkey,wsubkey);
             _socket_mtx->lock();
-            //string begin="registry|"+std::to_string(registry->size())+get_time_to_send()+"\r'n";
-            //socket->write(begin.c_str());
             string datatime=get_time_to_send();
             for(auto&x:*registry){
                 x->key(stdoriginal);
-                qDebug()<<QString::fromStdString((string)*x);
-                string tempp="registry|"+(string)*x+'|'+datatime;
-                _socket->write(tempp.c_str());
-                _socket->waitForBytesWritten();
+                x->reduce_key();
+                if(x->is_valid()){
+                    //qDebug()<<QString::fromStdString((string)*x);
+                    string tempp="registry|"+(string)*x+'|'+datatime;
+                    _socket->write(tempp.c_str());
+                    _socket->waitForBytesWritten();
+                }
             }
             string tempp="done";
             _socket->write(tempp.c_str());
             _socket->waitForBytesWritten();
             _socket_mtx->unlock();
-            connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_register_save);
-    //        HKEY key;
-    //        if(RegOpenKeyEx(HKEY_LOCAL_MACHINE,L"SOFTWARE\\test",0,KEY_ALL_ACCESS,&key)==ERROR_SUCCESS){
-    //            qDebug()<<"Otworzono";
-    //        }
+            //connect(_socket.get(), &QTcpSocket::readyRead, this, &MainWindow::read_register_save);
         }catch (const char * exc) {
             qDebug()<<"Error "<<exc;
         }
@@ -411,41 +413,39 @@ void MainWindow::on_one_archive_clicked(){
 }
 void MainWindow::on_importrecord_clicked(){
     if(_login_status){
-//        int index=ui->recordslist->currentIndex().row();
-//        qDebug()<<index;
-//        std::shared_ptr<std::queue<std::shared_ptr<RegField>>> import(new std::queue<std::shared_ptr<RegField>>());
-//        QString temp=ui->recordslist->currentItem()->text();
-//        qDebug()<<temp;
-//        string mess="get|"+temp.toStdString()+;
-//        _socket_mtx->lock();
-//        _socket->write(mess.c_str());
-//        _socket->waitForBytesWritten();
-//        _socket->waitForReadyRead();
-//        while(_socket->canReadLine()){
-//            QString read=_socket->readLine().trimmed();
-//            auto list=read.split('|');
-//            if(list[0]=="registry"&&list.size()==5){
-//                string _key=list[1].toStdString();
-//                string _value_name=list[2].toStdString();
-//                int _type=std::stoi(list[3].toStdString());
-//                string _value=list[4].toStdString();
-//                std::shared_ptr<RegField> row(new RegField(_key,_value_name,_value,_type));
-//                import->push(row);
-//            }
-//        }
-//        _socket_mtx->unlock();
-        std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
+        std::shared_ptr<std::queue<std::shared_ptr<RegField>>> import(new std::queue<std::shared_ptr<RegField>>());
+        QString temp=ui->recordslist->currentItem()->text();
+        qDebug()<<temp;
+        string mess="get|"+temp.toStdString();
+        _socket_mtx->lock();
+        _socket->write(mess.c_str());
+        _socket->waitForBytesWritten();
+        _socket->waitForReadyRead();
+        while(_socket->canReadLine()){
+            QString read=_socket->readLine().trimmed();
+            auto list=read.split('|');
+            if(list[0]=="registry"&&list.size()==5){
+                string _key=list[1].toStdString();
+                string _value_name=list[2].toStdString();
+                int _type=std::stoi(list[3].toStdString());
+                string _value=list[4].toStdString();
+                std::shared_ptr<RegField> row(new RegField(_key,_value_name,_value,_type));
+                import->push(row);
+            }
+        }
+        _socket_mtx->unlock();
 //        //binary 1 string 2 dword 3
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","hal",2));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","2 c0 0 0",1));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba3","321123",3));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","halo",2));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","111324",1));
-        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba3","132231",3));
+//        std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","hal",2));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba2","2 c0 0 0",1));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba3","321123",3));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","halo",2));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","111324",1));
+//        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba3","132231",3));
         try {
             QRegistry reg(false);
-            if(reg.Import(records)){
-            //if(reg.Import(import)){
+            //if(reg.Import(records)){
+            if(reg.Import(import)){
                 qDebug()<<"Udało się";
     //            QMessageBox msg(this);
     //            msg.setIcon(QMessageBox::Information);
@@ -473,12 +473,11 @@ void MainWindow::on_tabWidget_currentChanged(int index){
         ui->recordslist->clear();
         string mess="data|get";
         _socket_mtx->lock();
-        //_socket->write(mess.c_str());
-        //_socket->waitForBytesWritten();
-        //_socket->waitForReadyRead();
-//        while(_socket->canReadLine()){
-//            ui->recordslist->addItem(_socket->readLine().trimmed());
-//        }
+        _socket->write(mess.c_str());
+        _socket->waitForBytesWritten();
+        _socket->waitForReadyRead();
+        while(_socket->canReadLine())
+            ui->recordslist->addItem(_socket->readLine().trimmed());
         _socket_mtx->unlock();
     }
 }

@@ -28,13 +28,10 @@ bool RegField::is_valid(){
     else{
         std::regex key_regex("HKEY_(USERS|LOCAL_MACHINE)[\\w \\.-_]{1,}");
         std::regex value_regex("[^';]{1,}");
-        if(std::regex_search(_key,key_regex)&&std::regex_search(_value_name,value_regex)){
-            //qDebug()<<"Matched";
+        if(std::regex_search(_key,key_regex)&&std::regex_search(_value_name,value_regex))
             return true;
-        }
-        else{
-            //qDebug()<<"Not matched";
+        else
             return false;
-        }
+
     }
 }

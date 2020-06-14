@@ -12,7 +12,6 @@ QRegistry::~QRegistry(){
     str.close();
 }
 std::shared_ptr<std::list<std::shared_ptr<RegField> > > QRegistry::get_full_registry(HKEY hKey, LPTSTR fullKeyName, LPTSTR subKey, LPBOOL flags){
-    //full_registry=std::make_shared<std::list<std::shared_ptr<RegField>>>();
     full_registry.reset(new std::list<std::shared_ptr<RegField>>());
     TraverseRegistry(hKey,fullKeyName,subKey,flags);
     return full_registry;
@@ -94,7 +93,6 @@ WINBOOL QRegistry::Import(std::shared_ptr<std::queue<std::shared_ptr<RegField> >
                 type=REG_SZ;
                 wchar_t buf[255];
                 lstrcpy(buf,field[3].toStdWString().c_str());
-                //qDebug()<<lstrlen(buf)+1;
                 if(RegCreateKeyEx(hmainkey,wsubkey.c_str(),0,NULL, REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&hkey,&dwDisp)==ERROR_SUCCESS){
                     if(RegSetValueEx(hkey,field[1].toStdWString().c_str(),0,type,(LPBYTE)buf,lstrlen(buf)*sizeof (wchar_t))==ERROR_SUCCESS)
                         qDebug()<<"Done";
