@@ -57,7 +57,6 @@ private:
     bool _login_status=false;
     string _ip;
     string _port;
-    std::shared_ptr<std::queue<std::shared_ptr<RegField>>> _import;
 private:
     bool Connect_socket();
 };

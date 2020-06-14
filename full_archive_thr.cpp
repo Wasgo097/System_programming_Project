@@ -17,16 +17,17 @@ void Full_Archive_THR::run() {
         temp=reg.get_full_registry(HKEY_USERS,L"HKEY_USERS",NULL,flags);
     }
     socket_mtx->lock();
-    //string begin="registry|"+std::to_string(temp->size())+"\r'n";
-    //socket->write(begin.c_str());
+    string datatime=window->get_time_to_send();
     for(const auto &x:*temp){
         x->reduce_key();
         if(x->is_valid()){
-            str<<*x<<std::endl;
-            //string tempp="registry|"+(string)*x+window->get_time_to_send()+"\r\n";
-            //socket->write(tempp.c_str());
+            //str<<*x<<std::endl;
+            string tempp="registry|"+(string)*x+'|'+datatime;
+            socket->write(tempp.c_str());
         }
     }
+    string tempp="done";
+    socket->write(tempp.c_str());
     //connect(socket.get(), &QTcpSocket::readyRead, window, &MainWindow::read_register_save);
     socket_mtx->unlock();
     str.close();
