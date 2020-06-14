@@ -393,7 +393,7 @@ void MainWindow::on_one_archive_clicked(){
             for(auto&x:*registry){
                 x->key(stdoriginal);
                 if(x->is_valid()){
-                    //qDebug()<<QString::fromStdString((string)*x);
+                    qDebug()<<QString::fromStdString((string)*x);
                     string tempp="registry|"+(string)*x+'|'+datatime+'|';
                     qDebug()<<tempp.c_str();
                     _socket->write(tempp.c_str());
@@ -422,9 +422,11 @@ void MainWindow::on_importrecord_clicked(){
         _socket_mtx->lock();
         _socket->write(mess.c_str());
         _socket->waitForBytesWritten();
-        _socket->waitForReadyRead();
-        while(_socket->canReadLine()){
+        std::this_thread::sleep_for(100ms);
+        while(_socket->waitForReadyRead(3000)){
+            std::this_thread::sleep_for(100ms);
             QString read=_socket->readLine().trimmed();
+            qDebug()<<read;
             auto list=read.split('|');
             if(list[0]=="registry"&&list.size()==5){
                 string _key=list[1].toStdString();
@@ -436,6 +438,11 @@ void MainWindow::on_importrecord_clicked(){
             }
         }
         _socket_mtx->unlock();
+        while(!import->empty()){
+            RegField temp=(*import->front());
+            qDebug()<<((string)temp).c_str();
+            import->pop();
+        }
 //        //binary 1 string 2 dword 3
 //        std::shared_ptr<std::queue<std::shared_ptr<RegField>>> records(new std::queue<std::shared_ptr<RegField>>);
 //        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\test","proba1","hal",2));
@@ -444,30 +451,30 @@ void MainWindow::on_importrecord_clicked(){
 //        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba1","halo",2));
 //        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba2","111324",1));
 //        records->push(std::make_shared<RegField>("HKEY_USERS\\S-1-5-18\\Software\\proba","proba3","132231",3));
-        try {
-            QRegistry reg(false);
-            //if(reg.Import(records)){
-            if(reg.Import(import)){
-                qDebug()<<"Udalo się";
-    //            QMessageBox msg(this);
-    //            msg.setIcon(QMessageBox::Information);
-    //            msg.setText("Udało się zaimportować dane");
-    //            msg.setWindowTitle("Archiwizacja");
-    //            msg.setStandardButtons(QMessageBox::Ok);
-    //            msg.exec();
-            }
-            else{
-                qDebug()<<"Nie udalo sie";
-    //            QMessageBox msg(this);
-    //            msg.setIcon(QMessageBox::Information);
-    //            msg.setText("Nie zaimportowano przynajmniej jednego rekordu");
-    //            msg.setWindowTitle("Archiwizacja");
-    //            msg.setStandardButtons(QMessageBox::Ok);
-    //            msg.exec();
-            }
-        } catch (const char * exc) {
-            qDebug()<<exc;
-        }
+//        try {
+//            QRegistry reg(false);
+//            //if(reg.Import(records)){
+//            if(reg.Import(import)){
+//                qDebug()<<"Udalo się";
+//    //            QMessageBox msg(this);
+//    //            msg.setIcon(QMessageBox::Information);
+//    //            msg.setText("Udało się zaimportować dane");
+//    //            msg.setWindowTitle("Archiwizacja");
+//    //            msg.setStandardButtons(QMessageBox::Ok);
+//    //            msg.exec();
+//            }
+//            else{
+//                qDebug()<<"Nie udalo sie";
+//    //            QMessageBox msg(this);
+//    //            msg.setIcon(QMessageBox::Information);
+//    //            msg.setText("Nie zaimportowano przynajmniej jednego rekordu");
+//    //            msg.setWindowTitle("Archiwizacja");
+//    //            msg.setStandardButtons(QMessageBox::Ok);
+//    //            msg.exec();
+//            }
+//        } catch (const char * exc) {
+//            qDebug()<<exc;
+//        }
     }
 }
 void MainWindow::on_tabWidget_currentChanged(int index){

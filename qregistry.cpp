@@ -312,6 +312,7 @@ WINBOOL QRegistry::WriteValue(LPTSTR valueName, DWORD valueType, LPBYTE value, D
         break;
     case REG_DWORD:
         svalue=std::to_string((DWORD)*value);
+        qDebug()<<svalue.c_str();
         row->type(3);
         row->value(svalue);
         key->push_back(row);
